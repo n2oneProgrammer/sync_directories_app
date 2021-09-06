@@ -3,6 +3,7 @@ import os
 from os.path import join, isfile, isdir, abspath, relpath, exists, basename
 import filecmp
 from shutil import copyfile
+from utility import md5
 
 
 class SyncCore:
@@ -75,7 +76,7 @@ class SyncCore:
             if isdir(obj):
                 result_struct[obj] = self.generate_structure(obj)
             else:
-                result_struct[obj] = "[FILE]"
+                result_struct[obj] = md5(obj)
         return result_struct
 
     def sync_dir(self):
