@@ -1,10 +1,14 @@
+import json
 import os
-from os.path import join, isfile, isdir, abspath, relpath
+from os.path import join, isfile, isdir, abspath, relpath, exists, basename
 import filecmp
 from shutil import copyfile
+from utility import md5
 
 
 class SyncCore:
+    SYNC_STRUCT_FILE = ".syncstruct"
+
     left_files_only = []
     right_files_only = []
     left_dirs_only = []
@@ -63,21 +67,25 @@ class SyncCore:
         dst_file = join(self.src_dir1 if to_dir1 else self.src_dir2, dst_file)
         copyfile(src_file, dst_file)
 
+    def generate_structure(self, src_dir):
+        result_struct = {}
+        struct = [join(src_dir, f) for f in os.listdir(src_dir)]
+        for obj in struct:
+            if basename(obj) == self.SYNC_STRUCT_FILE:
+                continue
+            if isdir(obj):
+                result_struct[obj] = self.generate_structure(obj)
+            else:
+                result_struct[obj] = md5(obj)
+        return result_struct
+
     def sync_dir(self):
-        self.compare_dirs()
-        print(self.left_files_only)
-        print(self.right_files_only)
-        print(self.left_dirs_only)
-        print(self.right_dirs_only)
+        if exists(join(self.src_dir1, self.SYNC_STRUCT_FILE)):
+            dir_struct = self.generate_structure(self.src_dir1)
+            with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'w') as outfile:
+                json.dump(dir_struct, outfile)
 
-        for src in self.left_dirs_only:
-            self.creating_dirs(src, False)
-
-        for src in self.right_dirs_only:
-            self.creating_dirs(src, True)
-
-        for src in self.left_files_only:
-            self.copying_file(src, False)
-
-        for src in self.right_files_only:
-            self.copying_file(src, True)
+        if not exists(join(self.src_dir2, self.SYNC_STRUCT_FILE)):
+            dir_struct = self.generate_structure(self.src_dir2)
+            with open(join(self.src_dir2, self.SYNC_STRUCT_FILE), 'w') as outfile:
+                json.dump(dir_struct, outfile)
