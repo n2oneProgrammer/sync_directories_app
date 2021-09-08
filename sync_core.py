@@ -104,11 +104,19 @@ class SyncCore:
             old = json.load(infile)
             new = self.generate_structure(self.src_dir2)
             dir2_diff_add, dir2_diff_del, dir2_diff_edit = SyncCore.compare_dictionary(old, new)
+        print(dir1_diff_add, dir1_diff_del, dir1_diff_edit)
+        print(dir2_diff_add, dir2_diff_del, dir2_diff_edit)
+        self.generate_added_dir_file(dir1_diff_add, dir2_diff_add, False)
+        self.generate_added_dir_file(dir2_diff_add, dir1_diff_add, True)
 
-        self.generate_added_structure(dir1_diff_add, dir2_diff_add, False)
-        self.generate_added_structure(dir2_diff_add, dir1_diff_add, True)
+        self.removing_deleted_dir_file(dir1_diff_del, dir2_diff_edit, False)
+        self.removing_deleted_dir_file(dir2_diff_del, dir1_diff_edit, True)
 
-    def generate_added_structure(self, diff1, diff2, revers=False):
+        dir_struct = self.generate_structure(self.src_dir1)
+        with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'w') as outfile:
+            json.dump(dir_struct, outfile)
+
+    def generate_added_dir_file(self, diff1, diff2, revers=False):
 
         for d in diff1:
             diff1.remove(d)
@@ -126,3 +134,23 @@ class SyncCore:
                     shutil.copytree(src, dst)
                 else:
                     copyfile(src, dst)
+
+    def removing_deleted_dir_file(self, remove1, edit2, revers=False):
+
+        for r in remove1:
+            remove1.remove(r)
+            if r in edit2:
+                edit2.remove(r)
+                print("ERROR I dont know what i should do with " + r)
+            else:
+
+                if revers:
+                    src = join(self.src_dir2, r)
+                    target = join(self.src_dir1, r)
+                else:
+                    src = join(self.src_dir2, r)
+                    target = join(self.src_dir2, r)
+                if isdir(src):
+                    shutil.rmtree(target)
+                else:
+                    os.remove(target)
