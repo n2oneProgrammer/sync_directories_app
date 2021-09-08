@@ -4,6 +4,8 @@ from os.path import join, isfile, isdir, abspath, relpath, exists, basename
 import filecmp
 from shutil import copyfile
 from utility import md5
+from deepdiff import DeepDiff
+import os, shutil
 
 
 class SyncCore:
@@ -56,36 +58,71 @@ class SyncCore:
             src2 = join(self.src_dir2, com)
             self.compare_dirs(src1, src2)
 
-    def creating_dirs(self, src_dir, to_dir1=False):
-        path_dir = relpath(src_dir, self.src_dir2 if to_dir1 else self.src_dir1)
-        path_dir = join(self.src_dir1 if to_dir1 else self.src_dir2, path_dir)
-
-        os.makedirs(path_dir)
-
-    def copying_file(self, src_file, to_dir1=False):
-        dst_file = relpath(src_file, self.src_dir2 if to_dir1 else self.src_dir1)
-        dst_file = join(self.src_dir1 if to_dir1 else self.src_dir2, dst_file)
-        copyfile(src_file, dst_file)
-
-    def generate_structure(self, src_dir):
+    def generate_structure(self, src_dir, start_dir=None):
         result_struct = {}
+        if start_dir is None:
+            start_dir = src_dir
         struct = [join(src_dir, f) for f in os.listdir(src_dir)]
         for obj in struct:
             if basename(obj) == self.SYNC_STRUCT_FILE:
                 continue
             if isdir(obj):
-                result_struct[obj] = self.generate_structure(obj)
+                src = relpath(obj, start_dir)
+                result_struct[src] = self.generate_structure(obj, start_dir)
             else:
-                result_struct[obj] = md5(obj)
+                src = relpath(obj, start_dir)
+                result_struct[src] = md5(obj)
         return result_struct
 
+    @staticmethod
+    def compare_dictionary(old_dictionary, new_dictionary):
+        a = DeepDiff(old_dictionary, new_dictionary)
+        added_items = []
+        removed_items = []
+        edited_items = []
+        if "dictionary_item_added" in a:
+            added_items = [item.split("[")[-1][1:-2] for item in a['dictionary_item_added'].items]
+        if 'dictionary_item_removed' in a:
+            removed_items = [item.split("[")[-1][1:-2] for item in a['dictionary_item_removed'].items]
+        if 'values_changed' in a:
+            edited_items = [key.split("[")[-1][1:-2] for key, value in a['values_changed'].items()]
+
+        return added_items, removed_items, edited_items
+
     def sync_dir(self):
-        if exists(join(self.src_dir1, self.SYNC_STRUCT_FILE)):
+        if not exists(join(self.src_dir1, self.SYNC_STRUCT_FILE)):
             dir_struct = self.generate_structure(self.src_dir1)
             with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'w') as outfile:
                 json.dump(dir_struct, outfile)
 
-        if not exists(join(self.src_dir2, self.SYNC_STRUCT_FILE)):
-            dir_struct = self.generate_structure(self.src_dir2)
-            with open(join(self.src_dir2, self.SYNC_STRUCT_FILE), 'w') as outfile:
-                json.dump(dir_struct, outfile)
+        with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'r') as infile:
+            old = json.load(infile)
+            new = self.generate_structure(self.src_dir1)
+            dir1_diff_add, dir1_diff_del, dir1_diff_edit = SyncCore.compare_dictionary(old, new)
+
+        with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'r') as infile:
+            old = json.load(infile)
+            new = self.generate_structure(self.src_dir2)
+            dir2_diff_add, dir2_diff_del, dir2_diff_edit = SyncCore.compare_dictionary(old, new)
+
+        self.generate_added_structure(dir1_diff_add, dir2_diff_add, False)
+        self.generate_added_structure(dir2_diff_add, dir1_diff_add, True)
+
+    def generate_added_structure(self, diff1, diff2, revers=False):
+
+        for d in diff1:
+            diff1.remove(d)
+            if d in diff2:
+                diff2.remove(d)
+                print("ERROR I dont know what i should do with " + d)
+            else:
+                if revers:
+                    src = join(self.src_dir2, d)
+                    dst = join(self.src_dir1, d)
+                else:
+                    src = join(self.src_dir1, d)
+                    dst = join(self.src_dir2, d)
+                if isdir(src):
+                    shutil.copytree(src, dst)
+                else:
+                    copyfile(src, dst)
