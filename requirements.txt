@@ -1,1 +1,3 @@
-deepdiff~=5.5.0
+kivymd
+easygui
+deepdiff
