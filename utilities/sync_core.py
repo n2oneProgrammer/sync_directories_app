@@ -1,11 +1,13 @@
+import filecmp
 import json
 import os
-from os.path import join, isfile, isdir, abspath, relpath, exists, basename
-import filecmp
+import shutil
+from os.path import abspath, basename, exists, isdir, isfile, join, relpath
 from shutil import copyfile
-from utility import md5
+
 from deepdiff import DeepDiff
-import os, shutil
+
+from utilities.hash import md5
 
 
 class SyncCore:

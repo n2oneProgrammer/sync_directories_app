@@ -1,0 +1,78 @@
+<CreateSyncScreen>:
+
+	dir1: dir1
+	dir2: dir2
+	input_name: name
+
+	MDBoxLayout:
+		orientation: "vertical"
+
+		MDToolbar:
+			title: "Create Sync"
+			left_action_items: [["arrow-left", lambda x: app.goTo('main',True)]]
+
+		BoxLayout:		
+			spacing: dp(10)
+        	padding: dp(20)
+			orientation: "vertical"
+			
+			BoxLayout:
+				size_hint: (1,0.2)
+
+			AnchorLayout:
+				size_hint: (1,0.2)
+				anchor_x: "center"
+				anchor_y: "center"
+
+				MDTextField:
+					size_hint_x: 0.5
+					id: name
+					hint_text: "Sync name"
+					helper_text_mode: "on_error"
+					required: True
+
+			AnchorLayout:
+				size_hint: (1,0.2)
+				anchor_x: "center"
+				anchor_y: "center"
+				BoxLayout:
+					spacing: dp(50)
+					padding: dp(20)
+					orientation: "horizontal"
+
+					BoxLayout:
+						spacing: dp(10)
+						orientation: "horizontal"
+
+						MDTextField:
+							id: dir1
+							hint_text: "Directory 1"
+							helper_text_mode: "on_error"
+							required: True
+
+						MDRaisedButton:
+							text: "Select"
+							on_press: root.open_dialog1()
+
+					BoxLayout:
+						spacing: dp(10)
+						orientation: "horizontal"
+
+						MDTextField:
+							id: dir2
+							hint_text: "Directory 2"
+							helper_text_mode: "on_error"
+							required: True
+
+						MDRaisedButton:
+							text: "Select"
+							on_press: root.open_dialog2()
+
+			AnchorLayout:
+				size_hint: (1,0.4)
+				anchor_x: "center"
+				anchor_y: "center"
+
+				MDRaisedButton:
+					text: "Save"
+					on_press: root.save()

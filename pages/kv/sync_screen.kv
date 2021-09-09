@@ -1,0 +1,25 @@
+<SyncScreen>:
+	title: title
+
+	MDBoxLayout:
+		orientation: "vertical"
+
+		MDToolbar:
+			id: title
+			left_action_items: [["arrow-left", lambda x: app.goTo('main',True)]]
+			right_action_items: [["delete", lambda x: root.delete_dialog()]]
+
+		MDBoxLayout:
+			orientation: "vertical"
+
+			MDLabel:
+				text: "Content"
+				halign: "center"
+
+			AnchorLayout:
+				anchor_x: "center"
+				anchor_y: "center"
+			
+				MDRaisedButton:
+					text: "Sync"
+					on_press: root.sync_now()
