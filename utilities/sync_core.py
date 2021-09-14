@@ -114,6 +114,9 @@ class SyncCore:
         self.removing_deleted_dir_file(dir1_diff_del, dir2_diff_edit, False)
         self.removing_deleted_dir_file(dir2_diff_del, dir1_diff_edit, True)
 
+        self.editing_dir_file(dir1_diff_edit, dir2_diff_edit, False)
+        self.editing_dir_file(dir2_diff_edit, dir1_diff_edit, True)
+
         dir_struct = self.generate_structure(self.src_dir1)
         with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'w') as outfile:
             json.dump(dir_struct, outfile)
@@ -156,3 +159,21 @@ class SyncCore:
                     shutil.rmtree(target)
                 else:
                     os.remove(target)
+
+    def editing_dir_file(self, edit1, edit2, revers=False):
+
+        for r in edit1:
+            edit1.remove(r)
+            if r in edit2:
+                edit2.remove(r)
+                print("ERROR I dont know what i should do with " + r)
+            else:
+
+                if revers:
+                    src = join(self.src_dir2, r)
+                    dst = join(self.src_dir1, r)
+                else:
+                    src = join(self.src_dir2, r)
+                    dst = join(self.src_dir2, r)
+
+                copyfile(src, dst)
