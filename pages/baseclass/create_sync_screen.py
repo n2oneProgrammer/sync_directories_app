@@ -51,6 +51,8 @@ class CreateSyncScreen(Screen):
             self.dir1.text = self.dir1.text
             return
         syncs = Settings.getInstance().get("syncs")
+        if syncs == None:
+            syncs = []
         syncs.append(
             {
                 "name": self.input_name.text,
