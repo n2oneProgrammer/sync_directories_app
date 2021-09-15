@@ -1,5 +1,4 @@
 import json
-import sys
 
 
 class Settings:
@@ -28,7 +27,7 @@ class Settings:
             f.close()
             if self.data == {}:
                 raise Exception
-        except Exception as e:
+        except:
             print("Cannot found " + self.file_name)
             with open(self.file_name, "w") as json_file:
                 json.dump({}, json_file)

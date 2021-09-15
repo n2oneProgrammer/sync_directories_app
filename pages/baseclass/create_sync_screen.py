@@ -1,7 +1,6 @@
 from os import path
 
 import easygui
-from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen
 from utilities.screens import ScreensUtilities
 from utilities.settings import Settings
