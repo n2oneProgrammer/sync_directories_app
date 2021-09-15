@@ -19,11 +19,7 @@ class Settings:
             self.file_name = None
             Settings.__instance = self
 
-        if not self.file_name:
-            try:
-                self.file_name = str(sys.argv[1])
-            except:
-                self.file_name = "settings.json"
+        self.file_name = "settings.json"
 
         self.data = {}
         try:
@@ -34,6 +30,8 @@ class Settings:
                 raise Exception
         except Exception as e:
             print("Cannot found " + self.file_name)
+            with open(self.file_name, "w") as json_file:
+                json.dump({}, json_file)
 
     def get(self, name):
         return self.data.get(name)
