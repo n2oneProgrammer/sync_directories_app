@@ -30,3 +30,4 @@ class SyncDirectories(MDApp):
 
 if __name__ == "__main__":
     SyncDirectories().run()
+
