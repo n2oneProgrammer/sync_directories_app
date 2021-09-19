@@ -1,33 +1,43 @@
-from kivy.uix.screenmanager import ScreenManager
-from kivymd.app import MDApp
+import time
+from threading import Thread
 
-from pages.baseclass.create_sync_screen import CreateSyncScreen
-from pages.baseclass.main_screen import MainScreen
-from pages.baseclass.settings_screen import SettingsScreen
-from pages.baseclass.sync_screen import SyncScreen
-from utilities.loader import load_kv
-from utilities.screens import ScreensUtilities
+from PIL import Image
+from pystray import Icon, Menu, MenuItem
 
-load_kv()
-sm = ScreenManager()
-ScreensUtilities.getInstance(sm=sm)
+from utilities.path import get_icon_path
 
 
-class SyncDirectories(MDApp):
-    def build(self):
-        self.theme_cls.primary_palette = "Teal"
-        self.theme_cls.theme_style = "Dark"
-        sm.add_widget(MainScreen(name="main"))
-        sm.add_widget(SyncScreen(name="sync"))
-        sm.add_widget(SettingsScreen(name="settings"))
-        sm.add_widget(CreateSyncScreen(name="create"))
+class Tray:
+    def __init__(self):
+        self.initialzed = False
+        self.icon = Icon("SyncDirectories", title="SyncDirectories")
+        self.icon.icon = Image.open(get_icon_path())
+        self.icon.menu = Menu(MenuItem("run", self.start_app))
+        self.icon.run()
 
-        return sm
+    def notify(self, title, message, duration=3):
+        Thread(
+            target=self._notify,
+            name="Notifcation",
+            args=(
+                title,
+                message,
+                duration,
+            ),
+        ).start()
 
-    def goTo(self, screen, right):
-        ScreensUtilities.getInstance().goTo(screen=screen, right=right)
+    def _notify(self, title, message, duration):
+        self.icon.notify(title=title, message=message)
+        time.sleep(duration)
+        self.icon.remove_notification()
+
+    def start_app(self):
+        from app import init, run
+
+        if not self.initialzed:
+            init()
+        run()
 
 
 if __name__ == "__main__":
-    SyncDirectories().run()
-
+    Tray()
