@@ -1,8 +1,8 @@
-import filecmp
+import json
 import json
 import os
 import shutil
-from os.path import abspath, basename, exists, isdir, isfile, join, relpath
+from os.path import basename, exists, isdir, join, relpath
 from shutil import copyfile
 
 from deepdiff import DeepDiff
@@ -13,12 +13,6 @@ from utilities.hash import md5
 
 class SyncCore:
     SYNC_STRUCT_FILE = ".syncstruct"
-
-    left_files_only = []
-    right_files_only = []
-    left_dirs_only = []
-    right_dirs_only = []
-    difference_file = []
 
     def __init__(self, src_dir1, src_dir2):
         self.src_dir1 = src_dir1
