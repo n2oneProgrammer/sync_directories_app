@@ -24,43 +24,6 @@ class SyncCore:
         self.src_dir1 = src_dir1
         self.src_dir2 = src_dir2
 
-    def add_all_dir(self, src, is_dir1=False):
-        onlyfiles = [join(src, f) for f in os.listdir(src) if isfile(join(src, f))]
-        onlydirs = [join(src, f) for f in os.listdir(src) if isdir(join(src, f))]
-        if is_dir1:
-            self.left_files_only += onlyfiles
-        else:
-            self.right_files_only += onlyfiles
-        for d in onlydirs:
-            self.add_all_dir(d, is_dir1)
-
-    def compare_dirs(self, src_dir1=None, src_dir2=None):
-        if src_dir1 is None:
-            src_dir1 = self.src_dir1
-        if src_dir2 is None:
-            src_dir2 = self.src_dir2
-        compare = filecmp.dircmp(src_dir1, src_dir2)
-        self.left_files_only += [join(src_dir1, src) for src in compare.left_only if
-                                 isfile(abspath(join(src_dir1, src)))]
-        self.right_files_only += [join(src_dir2, src) for src in compare.right_only if
-                                  isfile(abspath(join(src_dir2, src)))]
-        left_dirs = [join(src_dir1, src) for src in compare.left_only if isdir(abspath(join(src_dir1, src)))]
-        right_dirs = [join(src_dir2, src) for src in compare.right_only if isdir(abspath(join(src_dir2, src)))]
-        self.left_dirs_only += left_dirs
-        self.right_dirs_only += right_dirs
-        self.difference_file += [(join(src_dir1, src), join(src_dir2, src)) for src in
-                                 compare.diff_files]
-        for d in left_dirs:
-            self.add_all_dir(d, True)
-
-        for d in right_dirs:
-            self.add_all_dir(d, False)
-
-        for com in compare.common_dirs:
-            src1 = join(self.src_dir1, com)
-            src2 = join(self.src_dir2, com)
-            self.compare_dirs(src1, src2)
-
     def generate_structure(self, src_dir, start_dir=None):
         result_struct = {}
         if start_dir is None:
