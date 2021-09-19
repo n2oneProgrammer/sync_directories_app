@@ -15,6 +15,7 @@ class SyncScreen(Screen):
         self.id = id
         self.sync = Settings.getInstance().get("syncs")[id]
         self.title.title = self.sync["name"]
+        self.dir.text = self.sync["dir1"] + " - " + self.sync["dir2"]
 
     def delete_dialog(self):
         if not self.dialog:
@@ -43,4 +44,27 @@ class SyncScreen(Screen):
         ScreensUtilities.getInstance().goTo("main", True)
 
     def sync_now(self):
-        SyncCore(self.sync["dir1"],self.sync["dir2"]).sync_dir()
+        SyncCore(self.sync["dir1"], self.sync["dir2"]).sync_dir()
+
+    def resolve_all(self):
+        pass
+
+    def resolve(self, id):
+        pass
+
+    def set_list_md_icons(self):
+        self.ids.rv.data = []
+        i = 0
+        collisions = [{"dir": "blablabla"}] #TODO
+        for item in collisions:
+            self.ids.rv.data.append(
+                {
+                    "viewclass": "SyncListItem",
+                    "text": item["dir"],
+                    "on_release": lambda x=i: self.resolve(x),
+                }
+            )
+            i += 1
+
+    def on_pre_enter(self, *args):
+        self.set_list_md_icons()

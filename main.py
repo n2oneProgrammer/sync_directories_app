@@ -1,33 +1,34 @@
-from kivy.uix.screenmanager import ScreenManager
-from kivymd.app import MDApp
+import time
+from threading import Thread
 
-from pages.baseclass.create_sync_screen import CreateSyncScreen
-from pages.baseclass.main_screen import MainScreen
-from pages.baseclass.settings_screen import SettingsScreen
-from pages.baseclass.sync_screen import SyncScreen
-from utilities.loader import load_kv
-from utilities.screens import ScreensUtilities
-
-load_kv()
-sm = ScreenManager()
-ScreensUtilities.getInstance(sm=sm)
+from PIL import Image
+from pystray import Icon, Menu, MenuItem
 
 
-class SyncDirectories(MDApp):
-    def build(self):
-        self.theme_cls.primary_palette = "Teal"
-        self.theme_cls.theme_style = "Dark"
-        sm.add_widget(MainScreen(name="main"))
-        sm.add_widget(SyncScreen(name="sync"))
-        sm.add_widget(SettingsScreen(name="settings"))
-        sm.add_widget(CreateSyncScreen(name="create"))
+def create_image():
+    image = Image.new("RGB", (64, 64), 0)
+    return image
 
-        return sm
 
-    def goTo(self, screen, right):
-        ScreensUtilities.getInstance().goTo(screen=screen, right=right)
+def notify():
+    icon.notify(title="Hello World!", message="xd")
+    time.sleep(3)
+    icon.remove_notification()
 
+
+def on_click():
+    Thread(target=notify).start()
+
+
+def run():
+    from app import run
+
+    run()
+
+
+icon = Icon("test name", title="xd")
+icon.icon = create_image()
+icon.menu = Menu(MenuItem("text", on_click), MenuItem("run", run))
 
 if __name__ == "__main__":
-    SyncDirectories().run()
-
+    icon.run()

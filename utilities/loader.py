@@ -1,12 +1,16 @@
 import os
+import sys
 
 from kivy.lang import Builder
+from kivy.resources import resource_add_path
 
 
 def load_kv():
-    dirs = ["pages/kv", "components/kv"]
+    dirs = ["pages\kv", "components\kv"]
+
     for d in dirs:
-        load_dir(d)
+        if hasattr(sys, "_MEIPASS"):
+            load_dir(os.path.join(sys._MEIPASS) + "\\" + d)
 
 
 def load_dir(dir):
