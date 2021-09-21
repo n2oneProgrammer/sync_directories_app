@@ -25,6 +25,6 @@ class ScreensUtilities:
 
         self.sm.current = screen
 
-    def goToSync(self, id):
+    def goToSync(self, sync):
         self.goTo("sync", False)
-        self.sm.get_screen(self.sm.current).setSync(id)
+        self.sm.get_screen(self.sm.current).setSync(sync)
