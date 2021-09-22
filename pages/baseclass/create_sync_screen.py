@@ -2,8 +2,8 @@ from os import path
 
 import easygui
 from kivy.uix.screenmanager import Screen
+from utilities.folder import Folder
 from utilities.screens import ScreensUtilities
-from utilities.settings import Settings
 
 
 class CreateSyncScreen(Screen):
@@ -61,20 +61,15 @@ class CreateSyncScreen(Screen):
             self.input_name.check_text(1)
             return
 
-        syncs = Settings.getInstance().get("syncs")
-        if syncs == None:
-            syncs = []
-        syncs.append(
+        f = Folder(
             {
                 "name": self.input_name.text,
                 "dir1": self.dir1.text,
                 "dir2": self.dir2.text,
-                "status": "check",
             }
         )
         self.reset()
-        Settings.getInstance().set("syncs", syncs)
-        ScreensUtilities.getInstance().goToSync(len(syncs) - 1)
+        ScreensUtilities.getInstance().goToSync(f)
 
     def reset(self):
         self._reset(self.input_name)
