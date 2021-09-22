@@ -1,4 +1,5 @@
-from components.baseclass.sync_list_item import SyncListItem  # it's in use via kivy
+from components.baseclass.sync_list_item import \
+    SyncListItem  # it's in use via kivy
 from kivy.uix.screenmanager import Screen
 from utilities.folder import Folder
 from utilities.screens import ScreensUtilities
@@ -12,7 +13,7 @@ class MainScreen(Screen):
             self.ids.rv.data.append(
                 {
                     "viewclass": "SyncListItem",
-                    "icon": "check",  # TODO:
+                    "icon": "check",  # TODO
                     "text": item.name,
                     "secondary_text": item.dir1 + " - " + item.dir2,
                     "on_release": lambda x=item: self.goToSync(x),

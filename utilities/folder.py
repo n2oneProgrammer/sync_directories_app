@@ -63,10 +63,10 @@ class Folder:
 
 
 class Confilct:
-    def __init__(self, path1, path2, status):
+    def __init__(self, path1, path2, type):
         self.path1 = path1
         self.path2 = path2
-        self.status = status
+        self.type = type
 
     def resolve():
         pass

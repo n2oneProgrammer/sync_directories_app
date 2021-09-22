@@ -48,20 +48,18 @@ class SyncScreen(Screen):
     def resolve(self, conflict):
         conflict.resolve()
 
-
     def set_list_md_icons(self):
         self.ids.rv.data = []
-        i = 0
-        collisions = [{"dir": "blablabla"}]  # TODO
+        collisions = self.sync.conflicts
         for item in collisions:
             self.ids.rv.data.append(
                 {
                     "viewclass": "SyncListItem",
-                    "text": item["dir"],
-                    "on_release": lambda x=i: self.resolve(x),
+                    "icon": "check",  # TODO
+                    "text": f"{item.path1} - {item.path2}",
+                    "on_release": lambda x=item: self.resolve(x),
                 }
             )
-            i += 1
 
-    def on_pre_enter(self, *args):
+    def on_enter(self, *args):
         self.set_list_md_icons()
