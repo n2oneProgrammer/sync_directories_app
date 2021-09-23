@@ -71,10 +71,13 @@ class SyncCore:
                 if conflicts_type != ConflictsType.AddAdd:
                     result_struct[src] = old_structure[src]
             elif isdir(obj):
-                result_struct[src] = self.generate_structure_with_conflicts(obj,
-                                                                            conflicts,
-                                                                            old_structure[src],
-                                                                            start_dir)
+                if src in old_structure:
+                    result_struct[src] = self.generate_structure_with_conflicts(obj,
+                                                                                conflicts,
+                                                                                old_structure[src],
+                                                                                start_dir)
+                else:
+                    result_struct[src] = self.generate_structure(obj, start_dir)
             else:
                 result_struct[src] = md5(obj)
 
@@ -111,8 +114,8 @@ class SyncCore:
         conflicts_tab.extend(self.editing_dir_file(dir2_diff_edit, dir1_diff_edit, True))
 
         dir_struct = self.generate_structure_with_conflicts(self.src_dir1, conflicts_tab, old)
-        with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'w') as outfile:
-            json.dump(dir_struct, outfile)
+        # with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'w') as outfile:
+        #     json.dump(dir_struct, outfile)
 
         return conflicts_tab
 
@@ -137,10 +140,11 @@ class SyncCore:
                 })
                 print("ERROR I dont know what i should do with " + d)
             else:
-                if isdir(src):
-                    shutil.copytree(src, dst)
-                else:
-                    copyfile(src, dst)
+                pass
+                # if isdir(src):
+                #     shutil.copytree(src, dst)
+                # else:
+                #     copyfile(src, dst)
 
         return result_conflicts
 
@@ -164,12 +168,13 @@ class SyncCore:
                 })
                 print("ERROR I dont know what i should do with " + r)
             else:
-                if not exists(target):
-                    continue
-                if isdir(src):
-                    shutil.rmtree(target)
-                else:
-                    os.remove(target)
+                pass
+                # if not exists(target):
+                #     continue
+                # if isdir(target):
+                #     shutil.rmtree(target)
+                # else:
+                #     os.remove(target)
         return result_conflicts
 
     def editing_dir_file(self, edit1, edit2, revers=False):
