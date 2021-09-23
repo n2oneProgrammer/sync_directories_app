@@ -2,7 +2,7 @@
 
 ## Build
 `
-py -m PyInstaller SyncDirectories.spec
+py -m PyInstaller SyncDirectories.spec --noconfirm
 `
 
 ## Icon

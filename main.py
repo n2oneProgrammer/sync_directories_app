@@ -9,7 +9,6 @@ from utilities.path import get_icon_path, get_name
 
 class Tray:
     def __init__(self):
-        self.initialzed = False
         self.icon = Icon(get_name(), title=get_name())
         self.icon.icon = Image.open(get_icon_path())
         self.icon.menu = Menu(MenuItem("run", self.start_app))
@@ -32,11 +31,9 @@ class Tray:
         self.icon.remove_notification()
 
     def start_app(self):
-        from app import init, run
+        from app import App
 
-        if not self.initialzed:
-            init()
-        run()
+        App.getInstance().run()
 
 
 if __name__ == "__main__":
