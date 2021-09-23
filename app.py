@@ -35,14 +35,37 @@ class SyncDirectories(MDApp):
         ScreensUtilities.getInstance().goTo(screen=screen, right=right)
 
     def on_stop(self):
+        App.getInstance().on_close()
         Window.hide()
 
 
-def init():
-    load_kv()
-    ScreensUtilities.getInstance(sm=ScreenManager())
+class App:
+    __instance = None
 
-def run():
-    Window.show()
-    Window.restore()
-    SyncDirectories().run()
+    @staticmethod
+    def getInstance():
+        if App.__instance == None:
+            App()
+        return App.__instance
+
+    def __init__(self):
+
+        if App.__instance != None:
+            raise Exception("This class is a singleton!")
+        else:
+            self.file_name = None
+            App.__instance = self
+
+        load_kv()
+        self.opened = False
+        ScreensUtilities.getInstance(sm=ScreenManager())
+
+    def on_close(self):
+        self.opened = False
+
+    def run(self):
+        if not self.opened:
+            self.opened = True
+            Window.show()
+            Window.restore()
+            SyncDirectories().run()
