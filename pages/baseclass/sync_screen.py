@@ -3,7 +3,6 @@ from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
 from utilities.screens import ScreensUtilities
 from utilities.settings import Settings
-from utilities.sync_core import SyncCore
 
 
 class SyncScreen(Screen):
@@ -11,11 +10,10 @@ class SyncScreen(Screen):
         super().__init__(**kw)
         self.dialog = None
 
-    def setSync(self, id):
-        self.id = id
-        self.sync = Settings.getInstance().get("syncs")[id]
-        self.title.title = self.sync["name"]
-        self.dir.text = self.sync["dir1"] + " - " + self.sync["dir2"]
+    def setSync(self, sync):
+        self.sync = sync
+        self.title.title = self.sync.name
+        self.dir.text = self.sync.dir1 + " - " + self.sync.dir2
 
     def delete_dialog(self):
         if not self.dialog:
@@ -38,33 +36,30 @@ class SyncScreen(Screen):
         if self.dialog:
             self.dialog.dismiss()
 
-        syncs = Settings.getInstance().get("syncs")
-        syncs.pop(self.id)
-        Settings.getInstance().set("syncs", syncs)
+        self.sync.delete()
         ScreensUtilities.getInstance().goTo("main", True)
 
     def sync_now(self):
-        SyncCore(self.sync["dir1"], self.sync["dir2"]).sync_dir()
+        self.sync.sync()
 
     def resolve_all(self):
-        pass
+        self.sync.resolve_all()
 
-    def resolve(self, id):
-        pass
+    def resolve(self, conflict):
+        conflict.resolve()
 
     def set_list_md_icons(self):
         self.ids.rv.data = []
-        i = 0
-        collisions = [{"dir": "blablabla"}] #TODO
+        collisions = self.sync.conflicts
         for item in collisions:
             self.ids.rv.data.append(
                 {
                     "viewclass": "SyncListItem",
-                    "text": item["dir"],
-                    "on_release": lambda x=i: self.resolve(x),
+                    "icon": "check",  # TODO
+                    "text": f"{item.path1} - {item.path2}",
+                    "on_release": lambda x=item: self.resolve(x),
                 }
             )
-            i += 1
 
-    def on_pre_enter(self, *args):
+    def on_enter(self, *args):
         self.set_list_md_icons()
