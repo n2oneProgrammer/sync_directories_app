@@ -2,3 +2,4 @@ kivymd
 easygui
 deepdiff
 pystray
+appdirs

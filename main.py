@@ -4,13 +4,13 @@ from threading import Thread
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
 
-from utilities.path import get_icon_path
+from utilities.path import get_icon_path, get_name
 
 
 class Tray:
     def __init__(self):
         self.initialzed = False
-        self.icon = Icon("SyncDirectories", title="SyncDirectories")
+        self.icon = Icon(get_name(), title=get_name())
         self.icon.icon = Image.open(get_icon_path())
         self.icon.menu = Menu(MenuItem("run", self.start_app))
         self.icon.run()
