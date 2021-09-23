@@ -68,5 +68,5 @@ class Confilct:
         self.path2 = path2
         self.type = type
 
-    def resolve():
+    def resolve(self):
         pass
