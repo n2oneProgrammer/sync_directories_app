@@ -1,5 +1,7 @@
 import json
 
+from utilities.path import get_storage
+
 
 class Settings:
     __instance = None
@@ -18,7 +20,7 @@ class Settings:
             self.file_name = None
             Settings.__instance = self
 
-        self.file_name = "settings.json"
+        self.file_name =  get_storage() + "/settings.json"
 
         self.data = {}
         try:
