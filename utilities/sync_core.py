@@ -71,9 +71,22 @@ class SyncCore:
                 if conflicts_type != ConflictsType.AddAdd:
                     result_struct[src] = old_structure[src]
             elif isdir(obj):
-                result_struct[src] = self.generate_structure_with_conflicts(obj, conflicts, old_structure, start_dir)
+                if src in old_structure:
+                    result_struct[src] = self.generate_structure_with_conflicts(obj,
+                                                                                conflicts,
+                                                                                old_structure[src],
+                                                                                start_dir)
+                else:
+                    result_struct[src] = self.generate_structure(obj, start_dir)
             else:
                 result_struct[src] = md5(obj)
+
+        removing_elements_in_dir1_tab = [a['left'] for a in conflicts if a['type'] == ConflictsType.RemoveEdit]
+        for element in removing_elements_in_dir1_tab:
+            key = relpath(element, start_dir)
+            if relpath(element, src_dir) == basename(element):
+                result_struct[key] = old_structure[key]
+
         return result_struct
 
     def sync_dir(self):
@@ -127,6 +140,7 @@ class SyncCore:
                 })
                 print("ERROR I dont know what i should do with " + d)
             else:
+                pass
                 if isdir(src):
                     shutil.copytree(src, dst)
                 else:
@@ -143,7 +157,7 @@ class SyncCore:
                 src = join(self.src_dir2, r)
                 target = join(self.src_dir1, r)
             else:
-                src = join(self.src_dir2, r)
+                src = join(self.src_dir1, r)
                 target = join(self.src_dir2, r)
             if r in edit2:
                 edit2.remove(r)
@@ -154,7 +168,10 @@ class SyncCore:
                 })
                 print("ERROR I dont know what i should do with " + r)
             else:
-                if isdir(src):
+                pass
+                if not exists(target):
+                    continue
+                if isdir(target):
                     shutil.rmtree(target)
                 else:
                     os.remove(target)
@@ -169,7 +186,7 @@ class SyncCore:
                 src = join(self.src_dir2, r)
                 dst = join(self.src_dir1, r)
             else:
-                src = join(self.src_dir2, r)
+                src = join(self.src_dir1, r)
                 dst = join(self.src_dir2, r)
             if r in edit2:
                 edit2.remove(r)
