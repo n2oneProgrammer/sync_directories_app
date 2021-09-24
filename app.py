@@ -24,10 +24,8 @@ class SyncDirectories(MDApp):
         self.theme_cls.primary_palette = "Teal"
         self.theme_cls.theme_style = "Dark"
 
-        ScreensUtilities.getInstance().sm.add_widget(MainScreen(name="main"))
-        ScreensUtilities.getInstance().sm.add_widget(SyncScreen(name="sync"))
-        ScreensUtilities.getInstance().sm.add_widget(SettingsScreen(name="settings"))
-        ScreensUtilities.getInstance().sm.add_widget(CreateSyncScreen(name="create"))
+        if App.getInstance().first:
+            self.setup_sm()
 
         return ScreensUtilities.getInstance().sm
 
@@ -37,6 +35,14 @@ class SyncDirectories(MDApp):
     def on_stop(self):
         App.getInstance().on_close()
         Window.hide()
+
+    def setup_sm(self):
+        sm = ScreenManager()
+        sm.add_widget(MainScreen(name="main"))
+        sm.add_widget(SyncScreen(name="sync"))
+        sm.add_widget(SettingsScreen(name="settings"))
+        sm.add_widget(CreateSyncScreen(name="create"))
+        ScreensUtilities.getInstance(sm=sm)
 
 
 class App:
@@ -57,15 +63,16 @@ class App:
             App.__instance = self
 
         load_kv()
+
+        self.first = True
         self.opened = False
-        ScreensUtilities.getInstance(sm=ScreenManager())
 
     def on_close(self):
         self.opened = False
 
     def run(self):
         if not self.opened:
-            self.opened = True
             Window.show()
-            Window.restore()
             SyncDirectories().run()
+            self.first = False
+            self.opened = True
