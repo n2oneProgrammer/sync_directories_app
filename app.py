@@ -72,7 +72,7 @@ class App:
 
     def run(self):
         if not self.opened:
+            self.opened = True
             Window.show()
             SyncDirectories().run()
             self.first = False
-            self.opened = True
