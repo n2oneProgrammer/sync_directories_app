@@ -30,10 +30,11 @@ class Folder:
         self.sync()
 
     def sync(self):
+        print("Syncing:", self.name)
+
         # TODO:
         # This need to be asyc
         # SyncCore(self.dir1, self.dir2).sync_dir()
-        pass
 
     def resolve_all(self):
         for item in self.conflicts:
