@@ -34,7 +34,9 @@ class Folder:
         # TODO:
         # This need to be asyc
         from utilities.sync_core import SyncCore
-        SyncCore(self.dir1, self.dir2).sync_dir()
+        a = SyncCore(self.dir1, self.dir2).sync_dir()
+        from utilities.conflict_resolver.conflict_resolver_addadd import ConflictResolverAddAdd
+        conf = ConflictResolverAddAdd(a[0], self)
         pass
 
     def resolve_all(self):
