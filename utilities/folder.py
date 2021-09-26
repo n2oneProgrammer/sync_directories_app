@@ -1,7 +1,5 @@
 import uuid
-from os.path import normpath
 
-from utilities.conflicts_type import ConflictsType
 from utilities.settings import Settings
 from utilities.sync_core import SyncCore
 
@@ -36,7 +34,7 @@ class Folder:
 
         # TODO:
         # This need to be asyc
-        # SyncCore(self.dir1, self.dir2).sync_dir()
+        SyncCore(self.dir1, self.dir2).sync_dir()
 
     def resolve_all(self):
         for item in self.conflicts:
@@ -63,13 +61,3 @@ class Folder:
 
     def to_dict(self):
         return {"id": self.id, "name": self.name, "dir1": self.dir1, "dir2": self.dir2}
-
-
-class Conflict:
-    def __init__(self, path1, path2, type: ConflictsType):
-        self.path1 = normpath(path1)
-        self.path2 = normpath(path2)
-        self.type = type
-
-    def resolve(self):
-        pass

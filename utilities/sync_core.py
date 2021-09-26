@@ -1,14 +1,14 @@
 import json
 import os
 import shutil
-from os.path import basename, exists, isdir, join, relpath, normpath
+from os.path import basename, exists, isdir, join, normpath, relpath
 from shutil import copyfile
 from typing import List
 
 from deepdiff import DeepDiff
 
+from utilities.conflict import Conflict
 from utilities.conflicts_type import ConflictsType
-from utilities.folder import Conflict
 from utilities.hash import md5
 
 
