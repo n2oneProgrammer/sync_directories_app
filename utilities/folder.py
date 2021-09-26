@@ -3,6 +3,7 @@ from os.path import normpath
 
 from utilities.conflicts_type import ConflictsType
 from utilities.settings import Settings
+from utilities.sync_core import SyncCore
 
 
 class Folder:
