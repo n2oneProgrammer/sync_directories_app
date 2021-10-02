@@ -1,4 +1,5 @@
 import uuid
+from os import path
 
 from utilities.settings import Settings
 from utilities.sync_core import SyncCore
@@ -26,15 +27,18 @@ class Folder:
         else:
             self.id = data["id"]
         self.conflicts = []
+        self.in_sync = False
         self.save()
         self.sync()
 
     def sync(self):
+        self.in_sync = True
         print("Syncing:", self.name)
 
         # TODO:
         # This need to be asyc
         SyncCore(self.dir1, self.dir2).sync_dir()
+        self.in_sync = False
 
     def resolve_all(self):
         for item in self.conflicts:
@@ -61,3 +65,12 @@ class Folder:
 
     def to_dict(self):
         return {"id": self.id, "name": self.name, "dir1": self.dir1, "dir2": self.dir2}
+
+    def status(self):
+        if not (path.exists(self.dir1) and path.exists(self.dir2)):
+            return "folder-alert"
+        if len(self.conflicts) > 0:
+            return "sync-alert"
+        if self.in_sync:
+            return "sync"
+        return "check"
