@@ -6,10 +6,13 @@ from utilities.screens import ScreensUtilities
 
 
 class MainScreen(Screen):
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self.syncs = Folder.load_all()
+
     def set_list_md_icons(self):
         self.ids.rv.data = []
-        syncs = Folder.load_all()
-        for item in syncs:
+        for item in self.syncs:
             self.ids.rv.data.append(
                 {
                     "viewclass": "SyncListItem",
