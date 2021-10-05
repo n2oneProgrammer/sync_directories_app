@@ -1,4 +1,4 @@
-from utilities.folder import Conflict, Folder
+from utilities.folder import Conflict
 
 
 class ConflictResolverFile:
@@ -23,4 +23,4 @@ class ConflictResolverFile:
 
     def resolve(self, new_content):
         self.sync_core.resolve_conflict(self.conflict.path1, self.conflict.path2,
-        new_content)
+                                        new_content)

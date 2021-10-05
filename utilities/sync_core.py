@@ -12,6 +12,7 @@ from utilities.folder import Conflict
 from utilities.hash import md5
 
 
+# TODO(any): Think about dir
 class SyncCore:
     SYNC_STRUCT_FILE = ".syncstruct"
 
@@ -225,4 +226,3 @@ class SyncCore:
             print(sync_file)
         with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'w') as outfile:
             json.dump(sync_file, outfile)
-
