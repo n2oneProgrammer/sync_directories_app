@@ -19,6 +19,8 @@ class Folder:
 
     def __init__(self, data):
 
+        from utilities.sync_core import SyncCore
+
         self.name = data["name"]
         self.dir1 = data["dir1"]
         self.dir2 = data["dir2"]
@@ -26,18 +28,17 @@ class Folder:
             self.id = uuid.uuid3(uuid.NAMESPACE_X500, self.name).hex
         else:
             self.id = data["id"]
+        self.sync_core = SyncCore(self.dir1, self.dir2)
         self.conflicts = []
         self.save()
+
         self.sync()
 
     def sync(self):
         # TODO:
         # This need to be asyc
-        from utilities.sync_core import SyncCore
-        a = SyncCore(self.dir1, self.dir2).sync_dir()
-        from utilities.conflict_resolver.conflict_resolver_addadd import ConflictResolverAddAdd
-        conf = ConflictResolverAddAdd(a[0], self)
-        pass
+        a = self.sync_core.sync_dir()
+
 
     def resolve_all(self):
         for item in self.conflicts:

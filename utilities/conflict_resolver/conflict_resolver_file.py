@@ -1,10 +1,11 @@
 from utilities.folder import Conflict, Folder
 
 
-class ConflictResolverAddAdd:
+class ConflictResolverFile:
 
-    def __init__(self, conflict: Conflict, folder: Folder):
+    def __init__(self, conflict: Conflict, sync_core):
         self.conflict = conflict
+        self.sync_core = sync_core
 
     def get_content_path1(self):
         with open(self.conflict.path1, "r") as file:
@@ -21,4 +22,5 @@ class ConflictResolverAddAdd:
         return content
 
     def resolve(self, new_content):
-        print("asdf")
+        self.sync_core.resolve_conflict(self.conflict.path1, self.conflict.path2,
+        new_content)
