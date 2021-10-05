@@ -1,6 +1,7 @@
 import uuid
 from os import path
 
+from utilities.notification import notify
 from utilities.settings import Settings
 from utilities.sync_core import SyncCore
 
@@ -37,7 +38,12 @@ class Folder:
 
         # TODO:
         # This need to be asyc
-        SyncCore(self.dir1, self.dir2).sync_dir()
+        self.conflicts = SyncCore(self.dir1, self.dir2).sync_dir()
+        if len(self.conflicts) > 0:
+            notify(
+                "Detected confilcts",
+                f"In {self.name} found {len(self.conflicts)} conflicts.",
+            )
         self.in_sync = False
 
     def resolve_all(self):

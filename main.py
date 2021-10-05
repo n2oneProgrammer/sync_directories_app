@@ -1,4 +1,5 @@
 import time
+from threading import Thread
 
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
@@ -20,12 +21,14 @@ class Tray:
         if Tray.__instance != None:
             raise Exception("This class is a singleton!")
         else:
-            self.file_name = None
             Tray.__instance = self
 
+        self.n = False
         self.icon = Icon(get_name(), title=get_name())
         self.icon.icon = Image.open(get_icon_path())
         self.icon.menu = Menu(MenuItem("run", self.start_app))
+
+    def run(self):
         self.icon.run()
 
     def notify(self, title, message, duration):
@@ -40,7 +43,8 @@ class Tray:
 
 
 if __name__ == "__main__":
-    from app import App
+    # from app import App
 
-    App.getInstance().run()
-    # Tray.getInstance()
+    # App.getInstance().run()
+    t = Tray.getInstance()
+    t.run()
