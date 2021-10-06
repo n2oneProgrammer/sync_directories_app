@@ -12,6 +12,7 @@ from utilities.conflicts_type import ConflictsType
 from utilities.hash import md5
 
 
+# TODO(any): Think about dir
 class SyncCore:
     SYNC_STRUCT_FILE = ".syncstruct"
 
@@ -190,3 +191,38 @@ class SyncCore:
                 copyfile(src, dst)
 
         return result_conflicts
+
+    def resolve_conflict(self, src1, src2, new_content):
+        if new_content is not None:
+            with open(src1, "w") as file:
+                file.write(new_content)
+
+            with open(src2, "w") as file:
+                file.write(new_content)
+        else:
+            if exists(src1):
+                os.remove(src1)
+            if exists(src2):
+                os.remove(src2)
+
+        a = relpath(normpath(src1), self.src_dir1).split("\\")
+        b = relpath(normpath(src1), self.src_dir2).split("\\")
+        src_file = (b if len(a) > len(b) else a)
+
+        with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'r') as infile:
+            sync_file = json.load(infile)
+
+            s = src_file[0]
+            place = sync_file
+            for c in src_file[1:]:
+                place = place[s]
+                s = join(s, c)
+                print(s)
+            if new_content is None:
+                del place[s]
+            else:
+                place[s] = md5(src1)
+
+            print(sync_file)
+        with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'w') as outfile:
+            json.dump(sync_file, outfile)
