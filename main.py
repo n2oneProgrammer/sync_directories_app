@@ -1,3 +1,5 @@
+import os
+
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
 
@@ -23,10 +25,15 @@ class Tray:
         self.n = False
         self.icon = Icon(get_name(), title=get_name())
         self.icon.icon = Image.open(get_icon_path())
-        self.icon.menu = Menu(MenuItem("run", self.start_app))
+        self.icon.menu = Menu(
+            MenuItem("run", self.start_app), MenuItem("close", self.exit)
+        )
 
     def run(self):
         self.icon.run()
+
+    def exit(self):
+        os._exit(0)
 
     def start_app(self):
         from app import App
