@@ -21,6 +21,8 @@ class Folder:
 
     def __init__(self, data):
 
+        from utilities.sync_core import SyncCore
+
         self.name = data["name"]
         self.dir1 = data["dir1"]
         self.dir2 = data["dir2"]
@@ -28,9 +30,11 @@ class Folder:
             self.id = uuid.uuid3(uuid.NAMESPACE_X500, self.name).hex
         else:
             self.id = data["id"]
+        self.sync_core = SyncCore(self.dir1, self.dir2)
         self.conflicts = []
         self.in_sync = False
         self.save()
+
         self.sync()
 
     def sync(self):
@@ -40,7 +44,7 @@ class Folder:
         self.in_sync = True
         
         print("Syncing:", self.name)
-        self.conflicts = SyncCore(self.dir1, self.dir2).sync_dir()
+        self.conflicts = self.sync_core.sync_dir()
 
         if len(self.conflicts) > 0:
             Notification.getInstance().notify(
@@ -49,7 +53,7 @@ class Folder:
             )
 
         self.in_sync = False
-
+        
     def resolve_all(self):
         for item in self.conflicts:
             item.resolve()
