@@ -1,7 +1,8 @@
 import uuid
 from os import path
+from threading import Thread
 
-from utilities.notification import notify
+from utilities.notification import Notification
 from utilities.settings import Settings
 from utilities.sync_core import SyncCore
 
@@ -33,17 +34,20 @@ class Folder:
         self.sync()
 
     def sync(self):
-        self.in_sync = True
-        print("Syncing:", self.name)
+        Thread(target=self._sync, name=f"Sync {self.name}").start()
 
-        # TODO:
-        # This need to be asyc
+    def _sync(self):
+        self.in_sync = True
+        
+        print("Syncing:", self.name)
         self.conflicts = SyncCore(self.dir1, self.dir2).sync_dir()
+
         if len(self.conflicts) > 0:
-            notify(
+            Notification.getInstance().notify(
                 "Detected confilcts",
                 f"In {self.name} found {len(self.conflicts)} conflicts.",
             )
+
         self.in_sync = False
 
     def resolve_all(self):

@@ -3,3 +3,4 @@ easygui
 deepdiff
 pystray
 appdirs
+win10toast

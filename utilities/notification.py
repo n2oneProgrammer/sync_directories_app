@@ -1,30 +1,48 @@
-import time
 from threading import Thread
 
+from win10toast import ToastNotifier
 
-def notify(title, message, duration=3):
-    Thread(
-        target=_notify,
-        name="Notifcation",
-        args=(
+
+class Notification:
+    __instance = None
+
+    @staticmethod
+    def getInstance():
+        if Notification.__instance == None:
+            Notification()
+        return Notification.__instance
+
+    def __init__(self):
+
+        if Notification.__instance != None:
+            raise Exception("This class is a singleton!")
+        else:
+            Notification.__instance = self
+
+        self.toaster = ToastNotifier()
+        self.n = False
+
+    def notify(self, title, message, duration=5):
+        Thread(
+            target=self._notify,
+            name="Notifcation",
+            args=(
+                title,
+                message,
+                duration,
+            ),
+        ).start()
+
+    def _notify(self, title, message, duration):
+
+        while self.n:
+            pass
+
+        self.n = True
+        ToastNotifier().show_toast(
             title,
             message,
-            duration,
-        ),
-    ).start()
-
-
-def _notify(title, message, duration):
-
-    from main import Tray
-
-    tray = Tray.getInstance()
-
-    print(title, message, tray.n)
-
-    while tray.n:
-        pass
-
-    tray.n = True
-    tray.notify(title, message, duration)
-    tray.n = False
+            icon_path="icon.ico",
+            duration=duration,
+        )
+        self.n = False

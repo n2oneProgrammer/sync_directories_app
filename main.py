@@ -1,6 +1,3 @@
-import time
-from threading import Thread
-
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
 
@@ -30,11 +27,6 @@ class Tray:
 
     def run(self):
         self.icon.run()
-
-    def notify(self, title, message, duration):
-        self.icon.notify(title=title, message=message)
-        time.sleep(duration)
-        self.icon.remove_notification()
 
     def start_app(self):
         from app import App
