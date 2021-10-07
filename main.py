@@ -26,7 +26,7 @@ class Tray:
         self.icon = Icon(get_name(), title=get_name())
         self.icon.icon = Image.open(get_icon_path())
         self.icon.menu = Menu(
-            MenuItem("run", self.start_app), MenuItem("close", self.exit)
+            MenuItem("Run", self.start_app), MenuItem("Close", self.exit)
         )
 
     def run(self):

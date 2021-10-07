@@ -2,6 +2,8 @@ from threading import Thread
 
 from win10toast import ToastNotifier
 
+from utilities.path import convert_path
+
 
 class Notification:
     __instance = None
@@ -42,7 +44,7 @@ class Notification:
         ToastNotifier().show_toast(
             title,
             message,
-            icon_path="icon.ico",
+            icon_path=convert_path("icon.ico"),
             duration=duration,
         )
         self.n = False
