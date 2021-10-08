@@ -2,20 +2,13 @@ class ScreensUtilities:
 
     __instance = None
 
-    @staticmethod
-    def getInstance(sm=None):
-        if ScreensUtilities.__instance == None:
-            ScreensUtilities(sm=sm)
-        return ScreensUtilities.__instance
+    def __new__(cls, *args, **kwargs):
+        if cls.__instance is None:
+            cls.__instance = super().__new__(cls, *args, **kwargs)
+        return cls.__instance
 
-    def __init__(self, sm=None):
-
-        if ScreensUtilities.__instance != None:
-            raise Exception("This class is a singleton!")
-        else:
-            if sm:
-                self.sm = sm
-            ScreensUtilities.__instance = self
+    def setSm(self, sm):
+        self.sm = sm
 
     def goTo(self, screen, right):
         if right:
@@ -25,7 +18,7 @@ class ScreensUtilities:
 
         self.sm.current = screen
 
-    def goToSync(self, sync, right = False):
+    def goToSync(self, sync, right=False):
         self.goTo("sync", right)
         self.sm.get_screen(self.sm.current).setSync(sync)
 

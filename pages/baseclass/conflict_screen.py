@@ -9,4 +9,4 @@ class ConflictScreen(Screen):
         self.title.title = self.conflict.path1 + " - " + self.conflict.path2
 
     def goBack(self):
-        ScreensUtilities.getInstance().goToSync(self.sync, True)
+        ScreensUtilities().goToSync(self.sync, True)

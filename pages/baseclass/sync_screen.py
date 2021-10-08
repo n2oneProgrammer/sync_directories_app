@@ -56,8 +56,8 @@ class SyncScreen(Screen):
                     "viewclass": "SyncListItem",
                     "icon": "check",  # TODO
                     "text": f"{item.path1} - {item.path2}",
-                    "on_release": lambda conf=item, sync=self.sync: ScreensUtilities.getInstance().goToConfilct(
-                        sync,conf
+                    "on_release": lambda conf=item, sync=self.sync: ScreensUtilities().goToConfilct(
+                        sync, conf
                     ),
                 }
             )

@@ -25,16 +25,16 @@ class SyncDirectories(MDApp):
         self.theme_cls.primary_palette = "Teal"
         self.theme_cls.theme_style = "Dark"
 
-        if App.getInstance().first:
+        if App().first:
             self.setup_sm()
 
-        return ScreensUtilities.getInstance().sm
+        return ScreensUtilities().sm
 
     def goTo(self, screen, right):
-        ScreensUtilities.getInstance().goTo(screen=screen, right=right)
+        ScreensUtilities().goTo(screen=screen, right=right)
 
     def on_stop(self):
-        App.getInstance().on_close()
+        App().on_close()
         Window.hide()
 
     def setup_sm(self):
@@ -44,25 +44,19 @@ class SyncDirectories(MDApp):
         sm.add_widget(SettingsScreen(name="settings"))
         sm.add_widget(CreateSyncScreen(name="create"))
         sm.add_widget(ConflictScreen(name="conflict"))
-        ScreensUtilities.getInstance(sm=sm)
+        ScreensUtilities().setSm(sm)
 
 
 class App:
     __instance = None
 
-    @staticmethod
-    def getInstance():
-        if App.__instance == None:
-            App()
-        return App.__instance
+    def __new__(cls, *args, **kwargs):
+        if cls.__instance is None:
+            cls.__instance = super().__new__(cls, *args, **kwargs)
+            cls.__instance._init()
+        return cls.__instance
 
-    def __init__(self):
-
-        if App.__instance != None:
-            raise Exception("This class is a singleton!")
-        else:
-            App.__instance = self
-
+    def _init(self):
         load_kv()
 
         self.first = True

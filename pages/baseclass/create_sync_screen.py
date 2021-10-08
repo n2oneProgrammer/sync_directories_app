@@ -101,4 +101,4 @@ class CreateSyncScreen(Screen):
 
     def back(self):
         self.reset()
-        ScreensUtilities.getInstance().goTo("main", True)
+        ScreensUtilities().goTo("main", True)

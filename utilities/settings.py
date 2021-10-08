@@ -6,21 +6,14 @@ from utilities.path import get_storage
 class Settings:
     __instance = None
 
-    @staticmethod
-    def getInstance():
-        if Settings.__instance == None:
-            Settings()
-        return Settings.__instance
+    def __new__(cls, *args, **kwargs):
+        if cls.__instance is None:
+            cls.__instance = super().__new__(cls, *args, **kwargs)
+            cls.__instance._init()
+        return cls.__instance
 
-    def __init__(self):
-
-        if Settings.__instance != None:
-            raise Exception("This class is a singleton!")
-        else:
-            self.file_name = None
-            Settings.__instance = self
-
-        self.file_name =  get_storage() + "/settings.json"
+    def _init(self):
+        self.file_name = get_storage() + "/settings.json"
 
         self.data = {}
         try:

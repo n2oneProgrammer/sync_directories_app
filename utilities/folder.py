@@ -10,9 +10,9 @@ from utilities.sync_core import SyncCore
 class Folder:
     @staticmethod
     def load_all():
-        syncs = Settings.getInstance().get("syncs")
+        syncs = Settings().get("syncs")
         if syncs is None:
-            Settings.getInstance().set("syncs", [])
+            Settings().set("syncs", [])
             syncs = []
         objs = []
         for item in syncs:
@@ -42,24 +42,24 @@ class Folder:
 
     def _sync(self):
         self.in_sync = True
-        
+
         print("Syncing:", self.name)
         self.conflicts = self.sync_core.sync_dir()
 
         if len(self.conflicts) > 0:
-            Notification.getInstance().notify(
+            Notification().notify(
                 "Detected confilcts",
                 f"In {self.name} found {len(self.conflicts)} conflicts.",
             )
 
         self.in_sync = False
-        
+
     def resolve_all(self):
         for item in self.conflicts:
             item.resolve()
 
     def save(self):
-        syncs = Settings.getInstance().get("syncs")
+        syncs = Settings().get("syncs")
 
         ok = True
         for item in syncs:
@@ -70,12 +70,12 @@ class Folder:
         if ok:
             syncs.append(self.to_dict())
 
-        Settings.getInstance().set("syncs", syncs)
+        Settings().set("syncs", syncs)
 
     def delete(self):
-        syncs = Settings.getInstance().get("syncs")
+        syncs = Settings().get("syncs")
         syncs.remove(self.to_dict())
-        Settings.getInstance().set("syncs", syncs)
+        Settings().set("syncs", syncs)
 
     def to_dict(self):
         return {"id": self.id, "name": self.name, "dir1": self.dir1, "dir2": self.dir2}

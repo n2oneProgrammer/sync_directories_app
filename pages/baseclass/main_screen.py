@@ -27,4 +27,4 @@ class MainScreen(Screen):
         self.set_list_md_icons()
 
     def goToSync(self, sync):
-        ScreensUtilities.getInstance().goToSync(sync)
+        ScreensUtilities().goToSync(sync)
