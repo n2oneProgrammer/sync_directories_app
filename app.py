@@ -59,7 +59,6 @@ class App:
         if App.__instance != None:
             raise Exception("This class is a singleton!")
         else:
-            self.file_name = None
             App.__instance = self
 
         load_kv()

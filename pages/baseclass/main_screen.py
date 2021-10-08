@@ -16,7 +16,7 @@ class MainScreen(Screen):
             self.ids.rv.data.append(
                 {
                     "viewclass": "SyncListItem",
-                    "icon": "check",  # TODO
+                    "icon": item.status(),
                     "text": item.name,
                     "secondary_text": item.dir1 + " - " + item.dir2,
                     "on_release": lambda x=item: self.goToSync(x),
