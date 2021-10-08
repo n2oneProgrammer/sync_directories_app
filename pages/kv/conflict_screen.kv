@@ -1,0 +1,56 @@
+<ConflictScreen>:
+	title: title
+
+	MDBoxLayout:
+		orientation: "vertical"
+
+        MDToolbar:
+			id: title
+			left_action_items: [["arrow-left", lambda x: root.goBack()]]
+			right_action_items: [["check", lambda x: root.resolved()]]
+
+		MDBoxLayout:
+			orientation: "horizontal"
+			spacing: dp(10)
+        	padding: dp(20)
+            
+			TextInput:
+				size_hint: (0.7,1)
+				background_color: 0.05,0.1,0.1,1
+				cursor_color: 0.9,0.9,0.9,1
+				foreground_color: 0.9,0.9,0.9,1
+
+			MDBoxLayout:
+				orientation: "vertical"
+				size_hint: (0.3,1)
+
+				AnchorLayout:
+					size_hint: (1,0.15)
+					anchor_x: "center"
+					anchor_y: "center"
+
+					MDRaisedButton:
+						text: "File 1"
+						on_press: root.dir1()
+				
+				AnchorLayout:
+					size_hint: (1,0.15)
+					anchor_x: "center"
+					anchor_y: "center"
+
+					MDRaisedButton:
+						text: "File 2"
+						on_press: root.dir2()
+
+				AnchorLayout:
+					size_hint: (1,0.15)
+					anchor_x: "center"
+					anchor_y: "center"
+
+					MDRaisedButton:
+						text: "Compare"
+						on_press: root.compare()
+				BoxLayout:
+					size_hint: (1,0.55)
+
+

@@ -5,6 +5,7 @@ from kivy.core.window import Window
 from kivy.uix.screenmanager import ScreenManager
 from kivymd.app import MDApp
 
+from pages.baseclass.conflict_screen import ConflictScreen
 from pages.baseclass.create_sync_screen import CreateSyncScreen
 from pages.baseclass.main_screen import MainScreen
 from pages.baseclass.settings_screen import SettingsScreen
@@ -42,6 +43,7 @@ class SyncDirectories(MDApp):
         sm.add_widget(SyncScreen(name="sync"))
         sm.add_widget(SettingsScreen(name="settings"))
         sm.add_widget(CreateSyncScreen(name="create"))
+        sm.add_widget(ConflictScreen(name="conflict"))
         ScreensUtilities.getInstance(sm=sm)
 
 

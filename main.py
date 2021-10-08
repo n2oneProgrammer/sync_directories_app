@@ -42,8 +42,9 @@ class Tray:
 
 
 if __name__ == "__main__":
-    # from app import App
 
-    # App.getInstance().run()
-    t = Tray.getInstance()
-    t.run()
+    #TODO: Remove debug
+    from app import App
+
+    App.getInstance().run()
+    #Tray.getInstance().run()

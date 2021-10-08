@@ -25,6 +25,10 @@ class ScreensUtilities:
 
         self.sm.current = screen
 
-    def goToSync(self, sync):
-        self.goTo("sync", False)
+    def goToSync(self, sync, right = False):
+        self.goTo("sync", right)
         self.sm.get_screen(self.sm.current).setSync(sync)
+
+    def goToConfilct(self, sync, conflict):
+        self.goTo("conflict", False)
+        self.sm.get_screen(self.sm.current).setSync(sync, conflict)

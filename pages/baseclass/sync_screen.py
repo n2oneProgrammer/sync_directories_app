@@ -2,7 +2,6 @@ from kivy.uix.screenmanager import Screen
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
 from utilities.screens import ScreensUtilities
-from utilities.settings import Settings
 
 
 class SyncScreen(Screen):
@@ -57,7 +56,9 @@ class SyncScreen(Screen):
                     "viewclass": "SyncListItem",
                     "icon": "check",  # TODO
                     "text": f"{item.path1} - {item.path2}",
-                    "on_release": lambda x=item: self.resolve(x),
+                    "on_release": lambda conf=item, sync=self.sync: ScreensUtilities.getInstance().goToConfilct(
+                        sync,conf
+                    ),
                 }
             )
 
