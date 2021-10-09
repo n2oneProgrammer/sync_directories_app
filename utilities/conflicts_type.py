@@ -2,6 +2,6 @@ from enum import Enum
 
 
 class ConflictsType(Enum):
-    AddAdd = 0
-    RemoveEdit = 1
-    EditEdit = 2
+    AddAdd = "file-plus"
+    RemoveEdit = "file-remove"
+    EditEdit = "file-edit"

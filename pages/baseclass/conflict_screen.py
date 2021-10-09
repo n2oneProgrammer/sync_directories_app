@@ -1,3 +1,5 @@
+from ntpath import join
+
 from kivy.core.window import Window
 from kivy.metrics import dp
 from kivy.uix.screenmanager import Screen
@@ -18,10 +20,10 @@ class ConflictScreen(Screen):
         ScreensUtilities().goToSync(self.sync, True)
 
     def file1(self):
-        self.text.text = self.resolver.get_content_path1()
+        self.text.text = "".join(self.resolver.get_content_path1())
 
     def file2(self):
-        self.text.text = self.resolver.get_content_path2()
+        self.text.text = "".join(self.resolver.get_content_path2())
 
     def compare(self):
         self.text.text = self.resolver.get_diff()

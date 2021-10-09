@@ -55,7 +55,7 @@ class SyncScreen(Screen):
             self.ids.rv.data.append(
                 {
                     "viewclass": "SyncListItem",
-                    "icon": "check",  # TODO
+                    "icon": item.type.value,
                     "text": f"{item.path1} - {item.path2}",
                     "on_release": lambda conf=item, sync=self.sync: ScreensUtilities().goToConfilct(
                         sync, conf
