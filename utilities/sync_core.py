@@ -12,7 +12,6 @@ from utilities.conflicts_type import ConflictsType
 from utilities.hash import md5
 
 
-# TODO(any): Think about dir
 class SyncCore:
     SYNC_STRUCT_FILE = ".syncstruct"
 
@@ -116,11 +115,16 @@ class SyncCore:
         conflicts_tab.extend(self.editing_dir_file(dir1_diff_edit, dir2_diff_edit, False))
         conflicts_tab.extend(self.editing_dir_file(dir2_diff_edit, dir1_diff_edit, True))
 
-        dir_struct = self.generate_structure_with_conflicts(self.src_dir1, conflicts_tab, old)
+        resulting_conf_tab = []
+
+        for conf in conflicts_tab:
+            resulting_conf_tab.extend(self.resolve_simple_conflicts(conf))
+
+        dir_struct = self.generate_structure_with_conflicts(self.src_dir1, resulting_conf_tab, old)
         with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'w') as outfile:
             json.dump(dir_struct, outfile)
 
-        return conflicts_tab
+        return resulting_conf_tab
 
     def generate_added_dir_file(self, diff1, diff2, revers=False) -> List[Conflict]:
         result_conflicts: List[Conflict] = []
@@ -139,7 +143,6 @@ class SyncCore:
                 result_conflicts.append(Conflict(src, dst, ConflictsType.AddAdd))
                 print("ERROR I dont know what i should do with " + d)
             else:
-                pass
                 if isdir(src):
                     shutil.copytree(src, dst)
                 else:
@@ -163,7 +166,6 @@ class SyncCore:
                 result_conflicts.append(Conflict(src, target, ConflictsType.RemoveEdit))
                 print("ERROR I dont know what i should do with " + r)
             else:
-                pass
                 if not exists(target):
                     continue
                 if isdir(target):
@@ -191,6 +193,36 @@ class SyncCore:
                 copyfile(src, dst)
 
         return result_conflicts
+
+    def resolve_simple_conflicts(self, conflict: Conflict):
+        path1 = conflict.path1
+        path2 = conflict.path2
+        conflicts = []
+        if isdir(path1):
+            if conflict.type == ConflictsType.AddAdd:
+                dir1 = self.generate_structure(path1)
+                dir2 = self.generate_structure(path2)
+                diff_add, diff_del, diff_edit = SyncCore.compare_dictionary(dir1, dir2)
+                for add in diff_add:
+                    src = join(path2, add)
+                    dst = join(path1, add)
+                    if isdir(src):
+                        shutil.copytree(src, dst)
+                    else:
+                        copyfile(src, dst)
+                for add in diff_del:
+                    src = join(path1, add)
+                    dst = join(path2, add)
+                    if isdir(src):
+                        shutil.copytree(src, dst)
+                    else:
+                        copyfile(src, dst)
+
+                for edit in diff_edit:
+                    conflicts.append(Conflict(join(path1, edit), join(path2, edit), ConflictsType.AddAdd))
+        else:
+            conflicts.append(conflict)
+        return conflicts
 
     def resolve_conflict(self, src1, src2, new_content):
         if new_content is not None:
