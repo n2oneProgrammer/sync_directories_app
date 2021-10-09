@@ -13,6 +13,7 @@ class SyncScreen(Screen):
         self.sync = sync
         self.title.title = self.sync.name
         self.dir.text = self.sync.dir1 + " - " + self.sync.dir2
+        self.set_conflicts_list()
 
     def delete_dialog(self):
         if not self.dialog:
@@ -36,10 +37,10 @@ class SyncScreen(Screen):
             self.dialog.dismiss()
 
         self.sync.delete()
-        ScreensUtilities.getInstance().goTo("main", True)
+        ScreensUtilities().goTo("main", True)
 
     def sync_now(self):
-        self.sync.sync()
+        self.sync.sync(self.set_conflicts_list)
 
     def resolve_all(self):
         self.sync.resolve_all()
@@ -47,7 +48,7 @@ class SyncScreen(Screen):
     def resolve(self, conflict):
         conflict.resolve()
 
-    def set_list_md_icons(self):
+    def set_conflicts_list(self):
         self.ids.rv.data = []
         collisions = self.sync.conflicts
         for item in collisions:
@@ -61,6 +62,3 @@ class SyncScreen(Screen):
                     ),
                 }
             )
-
-    def on_enter(self, *args):
-        self.set_list_md_icons()
