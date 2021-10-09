@@ -1,14 +1,12 @@
 import difflib
 
-from utilities.conflict import Conflict
-
 START_DIFF = ">>>>>>>>>>>>>>>>"
 END_DIFF = "<<<<<<<<<<<<<<<<"
 BETWEEN_DIFF = "----------------"
 
 
 class ConflictResolverFile:
-    def __init__(self, conflict: Conflict, sync_core):
+    def __init__(self, conflict, sync_core):
         self.conflict = conflict
         self.sync_core = sync_core
 
