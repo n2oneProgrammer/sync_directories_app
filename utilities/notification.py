@@ -8,23 +8,21 @@ from utilities.path import convert_path
 class Notification:
     __instance = None
 
-    @staticmethod
-    def getInstance():
-        if Notification.__instance == None:
-            Notification()
-        return Notification.__instance
+    def __new__(cls, *args, **kwargs):
+        if cls.__instance is None:
+            cls.__instance = super().__new__(cls, *args, **kwargs)
+            cls.__instance._init()
+        return cls.__instance
 
-    def __init__(self):
-
-        if Notification.__instance != None:
-            raise Exception("This class is a singleton!")
-        else:
-            Notification.__instance = self
-
+    def _init(self):
         self.toaster = ToastNotifier()
         self.n = False
 
     def notify(self, title, message, duration=5):
+
+        # TODO: Remove debug
+        return
+
         Thread(
             target=self._notify,
             name="Notifcation",

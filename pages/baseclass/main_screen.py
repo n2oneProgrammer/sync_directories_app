@@ -8,9 +8,9 @@ from utilities.screens import ScreensUtilities
 class MainScreen(Screen):
     def __init__(self, **kw):
         super().__init__(**kw)
-        self.syncs = Folder.load_all()
+        self.syncs = Folder.load_all(self.set_folder_list)
 
-    def set_list_md_icons(self):
+    def set_folder_list(self):
         self.ids.rv.data = []
         for item in self.syncs:
             self.ids.rv.data.append(
@@ -24,7 +24,7 @@ class MainScreen(Screen):
             )
 
     def on_pre_enter(self, *args):
-        self.set_list_md_icons()
+        self.set_folder_list()
 
     def goToSync(self, sync):
-        ScreensUtilities.getInstance().goToSync(sync)
+        ScreensUtilities().goToSync(sync)
