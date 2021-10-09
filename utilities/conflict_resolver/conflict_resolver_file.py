@@ -31,6 +31,16 @@ class ConflictResolverFile:
         self.sync_core.resolve_conflict(self.conflict.path1, self.conflict.path2,
                                         new_content)
 
+    def is_resolved(self, new_content: str):
+        found_line = -1
+        if found_line == -1:
+            found_line = new_content.find(START_DIFF)
+        if found_line == -1:
+            found_line = new_content.find(END_DIFF)
+        if found_line == -1:
+            found_line = new_content.find(BETWEEN_DIFF)
+        return found_line
+
     def get_diff(self):
         is_new_conflict = ""
         last = ""
@@ -41,28 +51,27 @@ class ConflictResolverFile:
                 continue
             if line.startswith("-"):
                 if is_new_conflict == "":
-                    result += START_DIFF + " Left"
+                    result += START_DIFF + " Left\n"
 
                     is_new_conflict = "-"
                 elif is_new_conflict == "+" and last == "+":
-                    result += BETWEEN_DIFF
+                    result += BETWEEN_DIFF + "\n"
                 last = "-"
-                result += line.strip()
+                result += line.strip() + "\n"
             elif line.startswith("+"):
                 if is_new_conflict == "":
-                    result += START_DIFF + " Right"
+                    result += START_DIFF + " Right\n"
                     is_new_conflict = "+"
                 elif is_new_conflict == "-" and last == "-":
-                    result += BETWEEN_DIFF
+                    result += BETWEEN_DIFF + "\n"
                 last = "+"
-                result += line.strip()
+                result += line.strip() + "\n"
             else:
                 if is_new_conflict == "-":
-                    result += END_DIFF + " Right"
+                    result += END_DIFF + " Right\n"
                 elif is_new_conflict == "+":
-                    result += END_DIFF + " Left"
+                    result += END_DIFF + " Left\n"
                 last = ""
                 is_new_conflict = ""
-                result += line.strip()
-            result += "\n"
-        return result[:-1]
+                result += line.strip() + "\n"
+        return result
