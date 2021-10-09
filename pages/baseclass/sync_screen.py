@@ -2,7 +2,6 @@ from kivy.uix.screenmanager import Screen
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
 from utilities.screens import ScreensUtilities
-from utilities.settings import Settings
 
 
 class SyncScreen(Screen):
@@ -14,6 +13,7 @@ class SyncScreen(Screen):
         self.sync = sync
         self.title.title = self.sync.name
         self.dir.text = self.sync.dir1 + " - " + self.sync.dir2
+        self.set_conflicts_list()
 
     def delete_dialog(self):
         if not self.dialog:
@@ -37,10 +37,10 @@ class SyncScreen(Screen):
             self.dialog.dismiss()
 
         self.sync.delete()
-        ScreensUtilities.getInstance().goTo("main", True)
+        ScreensUtilities().goTo("main", True)
 
     def sync_now(self):
-        self.sync.sync()
+        self.sync.sync(self.set_conflicts_list)
 
     def resolve_all(self):
         self.sync.resolve_all()
@@ -48,7 +48,7 @@ class SyncScreen(Screen):
     def resolve(self, conflict):
         conflict.resolve()
 
-    def set_list_md_icons(self):
+    def set_conflicts_list(self):
         self.ids.rv.data = []
         collisions = self.sync.conflicts
         for item in collisions:
@@ -57,9 +57,8 @@ class SyncScreen(Screen):
                     "viewclass": "SyncListItem",
                     "icon": "check",  # TODO
                     "text": f"{item.path1} - {item.path2}",
-                    "on_release": lambda x=item: self.resolve(x),
+                    "on_release": lambda conf=item, sync=self.sync: ScreensUtilities().goToConfilct(
+                        sync, conf
+                    ),
                 }
             )
-
-    def on_enter(self, *args):
-        self.set_list_md_icons()
