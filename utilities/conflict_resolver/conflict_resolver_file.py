@@ -1,5 +1,6 @@
-from utilities.conflict import Conflict
 import difflib
+
+from utilities.conflict import Conflict
 
 START_DIFF = ">>>>>>>>>>>>>>>>"
 END_DIFF = "<<<<<<<<<<<<<<<<"
@@ -25,16 +26,10 @@ class ConflictResolverFile:
             content = file.readlines()
         return content
 
-    def get_content_merge(self):
-        # TODO(any): Make magic happen
-
-        # and casche content
-        # and return magic
-        return "Here go the magic"
-
     def resolve(self, new_content):
-        self.sync_core.resolve_conflict(self.conflict.path1, self.conflict.path2,
-                                        new_content)
+        self.sync_core.resolve_conflict(
+            self.conflict.path1, self.conflict.path2, new_content
+        )
 
     def is_resolved(self, new_content: str):
         found_line = -1
@@ -51,7 +46,9 @@ class ConflictResolverFile:
         last = ""
         result = ""
 
-        for line in list(difflib.unified_diff(self.get_content_path1(), self.get_content_path2()))[2:] + [""]:
+        for line in list(
+            difflib.unified_diff(self.get_content_path1(), self.get_content_path2())
+        )[2:] + [""]:
             if line.startswith("@@"):
                 continue
             if line.startswith("-"):

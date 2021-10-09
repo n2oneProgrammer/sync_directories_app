@@ -1,6 +1,5 @@
 from kivy.uix.screenmanager import Screen
-from utilities.conflict_resolver.conflict_resolver_file import \
-    ConflictResolverFile
+from utilities.conflict_resolver.conflict_resolver_file import ConflictResolverFile
 from utilities.screens import ScreensUtilities
 
 
@@ -22,7 +21,7 @@ class ConflictScreen(Screen):
         self.text.text = self.resolver.get_content_path2()
 
     def compare(self):
-        self.text.text = self.resolver.get_content_merge()
+        self.text.text = self.resolver.get_diff()
 
     def save(self):
         self.resolver.resolve(self.text.text)
