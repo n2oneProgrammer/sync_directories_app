@@ -20,9 +20,6 @@ class Folder:
         return objs
 
     def __init__(self, data, callback=lambda: None):
-
-        from utilities.sync_core import SyncCore
-
         self.name = data["name"]
         self.dir1 = data["dir1"]
         self.dir2 = data["dir2"]
@@ -41,7 +38,7 @@ class Folder:
         Thread(target=self._sync, args=(callback,), name=f"Sync {self.name}").start()
 
     def _sync(self, callback):
-        if self.in_sync:
+        if self.in_sync or not self.valid():
             callback()
             return
         self.in_sync = True
@@ -86,10 +83,13 @@ class Folder:
         return {"id": self.id, "name": self.name, "dir1": self.dir1, "dir2": self.dir2}
 
     def status(self):
-        if not (path.exists(self.dir1) and path.exists(self.dir2)):
+        if not self.valid():
             return "folder-alert"
         if len(self.conflicts) > 0:
             return "sync-alert"
         if self.in_sync:
             return "sync"
         return "check"
+
+    def valid(self):
+        return path.exists(self.dir1) and path.exists(self.dir2)
