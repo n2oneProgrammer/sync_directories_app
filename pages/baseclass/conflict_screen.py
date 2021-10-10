@@ -1,5 +1,3 @@
-from ntpath import join
-
 from kivy.core.window import Window
 from kivy.metrics import dp
 from kivy.uix.screenmanager import Screen

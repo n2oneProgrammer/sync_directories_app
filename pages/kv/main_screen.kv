@@ -27,13 +27,27 @@
 					height: self.minimum_height
 					orientation: 'vertical'
 			
-			AnchorLayout:
+			BoxLayout:		
 				size_hint: (1,0.2)
-				anchor_x: "center"
-				anchor_y: "center"
+				spacing: dp(10)
+				orientation: "horizontal"
 
-				MDRaisedButton:
-					text: "Dodaj"
-					valign: "middle"
-					halign: "center"
-					on_press: app.goTo('create',False)
+				AnchorLayout:
+					anchor_x: "center"
+					anchor_y: "center"
+
+					MDRaisedButton:
+						text: "Sync all"
+						valign: "middle"
+						halign: "center"
+						on_press: root.sync_all()
+
+				AnchorLayout:
+					anchor_x: "center"
+					anchor_y: "center"
+
+					MDRaisedButton:
+						text: "Dodaj"
+						valign: "middle"
+						halign: "center"
+						on_press: app.goTo('create',False)
