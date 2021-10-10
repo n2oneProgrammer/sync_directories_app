@@ -86,7 +86,7 @@ class CreateSyncScreen(Screen):
             }
         )
         self.reset()
-        ScreensUtilities.getInstance().goToSync(f)
+        ScreensUtilities().goToSync(f)
 
     def reset(self):
         self._reset(self.input_name)
