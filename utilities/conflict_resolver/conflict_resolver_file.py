@@ -1,5 +1,7 @@
 import difflib
 
+from utilities.conflict_resolver.content import Content
+
 START_DIFF = ">>>>>>>>>>>>>>>>"
 END_DIFF = "<<<<<<<<<<<<<<<<"
 BETWEEN_DIFF = "----------------"
@@ -14,15 +16,15 @@ class ConflictResolverFile:
         with open(self.conflict.path1, "r") as file:
             # TODO(any): Check if file is binary
 
-            content = file.readlines()
-        return content
+            text = file.readlines()
+        return Content(text, False, False)
 
     def get_content_path2(self):
         with open(self.conflict.path2, "r") as file:
             # TODO(any): Check if file is binary
 
-            content = file.readlines()
-        return content
+            text = file.readlines()
+        return Content(text, False, False)
 
     def resolve(self, new_content):
         self.sync_core.resolve_conflict(
@@ -45,7 +47,9 @@ class ConflictResolverFile:
         result = ""
 
         for line in list(
-            difflib.unified_diff(self.get_content_path1(), self.get_content_path2())
+            difflib.unified_diff(
+                self.get_content_path1().text, self.get_content_path2().text
+            )
         )[2:] + [""]:
             if line.startswith("@@"):
                 continue
@@ -74,4 +78,5 @@ class ConflictResolverFile:
                 last = ""
                 is_new_conflict = ""
                 result += line.strip() + "\n"
-        return result
+
+        return Content(result, False, False)
