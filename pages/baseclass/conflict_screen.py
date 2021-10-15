@@ -1,13 +1,10 @@
-from ntpath import join
-
 from kivy.core.window import Window
 from kivy.metrics import dp
 from kivy.uix.screenmanager import Screen
 from kivy.uix.textinput import TextInput
 from kivymd.uix.label import MDLabel
 from kivymd.uix.snackbar import Snackbar
-from utilities.conflict_resolver.conflict_resolver_file import \
-    ConflictResolverFile
+from utilities.conflict_resolver.conflict_resolver_file import ConflictResolverFile
 from utilities.screens import ScreensUtilities
 
 
