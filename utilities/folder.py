@@ -44,7 +44,7 @@ class Folder:
         self.in_sync = True
         callback()
 
-        print("Syncing:", self.name)
+        print("Syncing:", self.name, self.in_sync)
         self.conflicts = self.sync_core.sync_dir()
 
         if len(self.conflicts) > 0:
@@ -83,12 +83,12 @@ class Folder:
         return {"id": self.id, "name": self.name, "dir1": self.dir1, "dir2": self.dir2}
 
     def status(self):
+        if self.in_sync:
+            return "sync"
         if not self.valid():
             return "folder-alert"
         if len(self.conflicts) > 0:
             return "sync-alert"
-        if self.in_sync:
-            return "sync"
         return "check"
 
     def valid(self):
