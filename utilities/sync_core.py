@@ -225,12 +225,12 @@ class SyncCore:
         return conflicts
 
     def resolve_conflict(self, src1, src2, new_content):
-        if new_content is not None:
+        if new_content.text is not None:
             with open(src1, "w") as file:
-                file.write(new_content)
+                file.write(new_content.text)
 
             with open(src2, "w") as file:
-                file.write(new_content)
+                file.write(new_content.text)
         else:
             if exists(src1):
                 os.remove(src1)

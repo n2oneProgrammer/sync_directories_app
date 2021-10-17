@@ -62,6 +62,7 @@ class ConflictScreen(Screen):
             )
 
     def save(self):
+        self.content.text = self.text.children[0].text  # TODO: Do it in better way
         if not self.resolver.is_resolved(self.content):
             Snackbar(
                 text="First you need to resolve it!",
