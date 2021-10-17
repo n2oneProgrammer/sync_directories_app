@@ -78,6 +78,12 @@ class Folder:
         syncs = Settings().get("syncs")
         syncs.remove(self.to_dict())
         Settings().set("syncs", syncs)
+        self.force_update()
+
+    def force_update(self):
+        if Settings().get("update")==True:
+            return
+        Settings().set("update",True)
 
     def to_dict(self):
         return {"id": self.id, "name": self.name, "dir1": self.dir1, "dir2": self.dir2}

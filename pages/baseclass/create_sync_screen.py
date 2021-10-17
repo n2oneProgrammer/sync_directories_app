@@ -85,6 +85,7 @@ class CreateSyncScreen(Screen):
                 "dir2": self.dir2.text,
             }
         )
+        f.force_update()
         self.reset()
         ScreensUtilities().goToSync(f)
 
