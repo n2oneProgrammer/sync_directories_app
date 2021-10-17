@@ -31,14 +31,14 @@ class ConflictResolverFile:
             self.conflict.path1, self.conflict.path2, new_content
         )
 
-    def is_resolved(self, new_content: str):
+    def is_resolved(self, new_content: Content):
         found_line = -1
         if found_line == -1:
-            found_line = new_content.find(START_DIFF)
+            found_line = new_content.text.find(START_DIFF)
         if found_line == -1:
-            found_line = new_content.find(END_DIFF)
+            found_line = new_content.text.find(END_DIFF)
         if found_line == -1:
-            found_line = new_content.find(BETWEEN_DIFF)
+            found_line = new_content.text.find(BETWEEN_DIFF)
         return found_line
 
     def get_diff(self):
@@ -47,9 +47,9 @@ class ConflictResolverFile:
         result = ""
 
         for line in list(
-            difflib.unified_diff(
-                self.get_content_path1().text, self.get_content_path2().text
-            )
+                difflib.unified_diff(
+                    self.get_content_path1().text, self.get_content_path2().text
+                )
         )[2:] + [""]:
             if line.startswith("@@"):
                 continue
