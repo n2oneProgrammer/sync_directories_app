@@ -7,14 +7,24 @@ from kivymd.uix.button import MDFlatButton
 from kivymd.uix.snackbar import Snackbar
 from utilities.folder import Folder
 from utilities.screens import ScreensUtilities
+from utilities.settings import Settings
 
 
 class MainScreen(Screen):
     def __init__(self, **kw):
         super().__init__(**kw)
+        self._load_sync_file()
+        
+    def check_for_update(self):
+        if Settings().get("update") == True:
+            self._load_sync_file()
+
+    def _load_sync_file(self):
         self.syncs = Folder.load_all(self.set_folder_list)
+        Settings().set("update", False)
 
     def set_folder_list(self):
+        self.check_for_update()
         self.ids.rv.data = []
         try:
             for item in self.syncs:
