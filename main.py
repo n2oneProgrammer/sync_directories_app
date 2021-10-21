@@ -3,6 +3,7 @@ import os
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
 
+from utilities.device_listener import DeviceListener
 from utilities.folder import Folder
 from utilities.notification import Notification
 from utilities.path import get_icon_path, get_name
@@ -39,6 +40,7 @@ class Tray:
         Notification().notify("Sync", f"Syncs complited!")
 
     def run(self):
+        DeviceListener(self.sync_now).start()
         self.icon.run()
 
     def exit(self):
