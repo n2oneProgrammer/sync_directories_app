@@ -13,17 +13,23 @@ class ConflictResolverFile:
         self.sync_core = sync_core
 
     def get_content_path1(self):
-        with open(self.conflict.path1, "r") as file:
-            # TODO(any): Check if file is binary
-
-            text = file.readlines()
+        try:
+            with open(self.conflict.path1, "r") as file:
+                text = file.readlines()
+        except FileNotFoundError:
+            return Content("", True, False, self.conflict.path1)
+        except UnicodeDecodeError:
+            return Content("", False, True, self.conflict.path1)
         return Content(text, False, False)
 
     def get_content_path2(self):
-        with open(self.conflict.path2, "r") as file:
-            # TODO(any): Check if file is binary
-
-            text = file.readlines()
+        try:
+            with open(self.conflict.path2, "r") as file:
+                text = file.readlines()
+        except FileNotFoundError:
+            return Content("", True, False, self.conflict.path2)
+        except UnicodeDecodeError:
+            return Content("", False, True, self.conflict.path2)
         return Content(text, False, False)
 
     def resolve(self, new_content):
@@ -61,7 +67,7 @@ class ConflictResolverFile:
                 elif is_new_conflict == "+" and last == "+":
                     result += BETWEEN_DIFF + "\n"
                 last = "-"
-                result += line.strip() + "\n"
+                result += line.strip()[1:] + "\n"
             elif line.startswith("+"):
                 if is_new_conflict == "":
                     result += START_DIFF + " Right\n"
@@ -69,7 +75,7 @@ class ConflictResolverFile:
                 elif is_new_conflict == "-" and last == "-":
                     result += BETWEEN_DIFF + "\n"
                 last = "+"
-                result += line.strip() + "\n"
+                result += line.strip()[1:] + "\n"
             else:
                 if is_new_conflict == "-":
                     result += END_DIFF + " Right\n"
