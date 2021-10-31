@@ -225,17 +225,25 @@ class SyncCore:
         return conflicts
 
     def resolve_conflict(self, src1, src2, new_content):
-        if new_content.text is not None:
+        if new_content.is_deleted:
+            if exists(src1):
+                os.remove(src1)
+            if exists(src2):
+                os.remove(src2)
+        elif new_content.is_binary:
+
+            if new_content.path != src1:
+                os.remove(src1)
+                copyfile(new_content.path, src1)
+            if new_content.path != src2:
+                os.remove(src2)
+                copyfile(new_content.path, src2)
+        else:
             with open(src1, "w") as file:
                 file.write(new_content.text)
 
             with open(src2, "w") as file:
                 file.write(new_content.text)
-        else:
-            if exists(src1):
-                os.remove(src1)
-            if exists(src2):
-                os.remove(src2)
 
         a = relpath(normpath(src1), self.src_dir1).split("\\")
         b = relpath(normpath(src1), self.src_dir2).split("\\")
@@ -250,7 +258,7 @@ class SyncCore:
                 place = place[s]
                 s = join(s, c)
                 print(s)
-            if new_content is None:
+            if new_content.is_deleted:
                 del place[s]
             else:
                 place[s] = md5(src1)
