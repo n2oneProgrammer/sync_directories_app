@@ -231,12 +231,13 @@ class SyncCore:
             if exists(src2):
                 os.remove(src2)
         elif new_content.is_binary:
-
             if new_content.path != src1:
-                os.remove(src1)
+                if exists(src1):
+                    os.remove(src1)
                 copyfile(new_content.path, src1)
             if new_content.path != src2:
-                os.remove(src2)
+                if exists(src2):
+                    os.remove(src2)
                 copyfile(new_content.path, src2)
         else:
             with open(src1, "w") as file:
