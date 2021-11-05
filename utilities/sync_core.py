@@ -8,7 +8,7 @@ from typing import List
 from deepdiff import DeepDiff
 
 from utilities.conflict import Conflict
-from utilities.conflicts_type import ConflictsType
+from utilities.sync_core_libs.diff_type import DiffType
 from utilities.hash import md5
 
 
@@ -70,7 +70,7 @@ class SyncCore:
             conflicts_type = self.include_conflict_tab(conflicts, obj)
             src = relpath(obj, start_dir)
             if conflicts_type is not None:
-                if conflicts_type != ConflictsType.AddAdd:
+                if conflicts_type != DiffType.AddAddConflict:
                     result_struct[src] = old_structure[src]
             elif isdir(obj):
                 if src in old_structure:
@@ -83,7 +83,7 @@ class SyncCore:
             else:
                 result_struct[src] = md5(obj)
 
-        removing_elements_in_dir1_tab = [a.path1 for a in conflicts if a.type == ConflictsType.RemoveEdit]
+        removing_elements_in_dir1_tab = [a.path1 for a in conflicts if a.type == DiffType.RemoveEditConflict]
         for element in removing_elements_in_dir1_tab:
             key = relpath(element, start_dir)
             if relpath(element, src_dir) == basename(element):
@@ -104,6 +104,7 @@ class SyncCore:
             dir2_diff_add, dir2_diff_del, dir2_diff_edit = SyncCore.compare_dictionary(old, new2)
         print(dir1_diff_add, dir1_diff_del, dir1_diff_edit)
         print(dir2_diff_add, dir2_diff_del, dir2_diff_edit)
+
         conflicts_tab: List[Conflict] = []
 
         conflicts_tab.extend(self.generate_added_dir_file(dir1_diff_add, dir2_diff_add, False))
@@ -140,7 +141,7 @@ class SyncCore:
 
             if d in diff2:
                 diff2.remove(d)
-                result_conflicts.append(Conflict(src, dst, ConflictsType.AddAdd))
+                result_conflicts.append(Conflict(src, dst, DiffType.AddAddConflict))
                 print("ERROR I dont know what i should do with " + d)
             else:
                 if isdir(src):
@@ -163,7 +164,7 @@ class SyncCore:
                 target = join(self.src_dir2, r)
             if r in edit2:
                 edit2.remove(r)
-                result_conflicts.append(Conflict(src, target, ConflictsType.RemoveEdit))
+                result_conflicts.append(Conflict(src, target, DiffType.RemoveEditConflict))
                 print("ERROR I dont know what i should do with " + r)
             else:
                 if not exists(target):
@@ -187,7 +188,7 @@ class SyncCore:
                 dst = join(self.src_dir2, r)
             if r in edit2:
                 edit2.remove(r)
-                result_conflicts.append(Conflict(src, dst, ConflictsType.EditEdit))
+                result_conflicts.append(Conflict(src, dst, DiffType.EditEditConflict))
                 print("ERROR I dont know what i should do with " + r)
             else:
                 copyfile(src, dst)
@@ -199,7 +200,7 @@ class SyncCore:
         path2 = conflict.path2
         conflicts = []
         if isdir(path1):
-            if conflict.type == ConflictsType.AddAdd:
+            if conflict.type == DiffType.AddAddConflict:
                 dir1 = self.generate_structure(path1)
                 dir2 = self.generate_structure(path2)
                 diff_add, diff_del, diff_edit = SyncCore.compare_dictionary(dir1, dir2)
@@ -219,7 +220,7 @@ class SyncCore:
                         copyfile(src, dst)
 
                 for edit in diff_edit:
-                    conflicts.append(Conflict(join(path1, edit), join(path2, edit), ConflictsType.AddAdd))
+                    conflicts.append(Conflict(join(path1, edit), join(path2, edit), DiffType.AddAddConflict))
         else:
             conflicts.append(conflict)
         return conflicts
