@@ -21,6 +21,10 @@ class SyncFile:
         self.type = type
         self.status = status
 
+    def get_conflict(self):
+        if self.type in [DiffType.AddAddConflict, DiffType.EditEditConflict, DiffType.RemoveEditConflict]:
+            return Conflict(self.src1, self.src2, self.type)
+
 
 class SyncCore:
     SYNC_STRUCT_FILE = ".syncstruct"
@@ -140,7 +144,7 @@ class SyncCore:
             elif md5_sync_file == md5_src2:
                 if md5_src1 is None:
                     self.change_status_diff_list(DiffType.Delete, diff_list_object)
-                elif not md5_sync_file == md5_src2:
+                elif not md5_sync_file == md5_src1:
                     self.change_status_diff_list(DiffType.Edit, diff_list_object)
             else:
                 if md5_src1 is None:
@@ -228,14 +232,12 @@ class SyncCore:
     #         self.dir2_diff_add, self.dir2_diff_del, self.dir2_diff_edit = self.compare_dictionary(old, new2)
     #     print("step 4")
 
-    def update_sync_file(self, diff):
-        diff_type = diff.type
-
+    def update_sync_file(self, diff, is_delete):
         src1 = diff.src1
         src2 = diff.src1
 
         a = relpath(normpath(src1), self.src_dir1).split("\\")
-        b = relpath(normpath(src2), self.src_dir2).split("\\")
+        b = relpath(normpath(src1), self.src_dir2).split("\\")
         src_file = (b if len(a) > len(b) else a)
 
         s = src_file[0]
@@ -245,14 +247,10 @@ class SyncCore:
             s = join(s, c)
             print(s)
 
-        if diff_type is DiffType.Create:
-            place[s] = md5(src1)
-        elif diff_type is DiffType.Delete:
+        if is_delete:
             del place[s]
-        elif diff_type is DiffType.Edit:
-            place[s] = md5(src1)
         else:
-            raise Exception("Its not finish")
+            place[s] = md5(src1)
 
         print(self.sync_file)
         with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'w') as outfile:
@@ -265,7 +263,7 @@ class SyncCore:
             shutil.copytree(src, dst)
         else:
             copyfile(src, dst)
-        self.update_sync_file(diff)
+        self.update_sync_file(diff, False)
         self.diff_list.remove(diff)
 
     def merge_delete_file(self, diff: SyncFile):
@@ -277,12 +275,12 @@ class SyncCore:
         else:
             os.remove(diff.src2)
 
-        self.update_sync_file(diff)
+        self.update_sync_file(diff, True)
         self.diff_list.remove(diff)
 
     def merge_edit_file(self, diff: SyncFile):
         copyfile(diff.src1, diff.src2)
-        self.update_sync_file(diff)
+        self.update_sync_file(diff, False)
         self.diff_list.remove(diff)
         pass
 
@@ -296,3 +294,27 @@ class SyncCore:
             self.merge_edit_file(diff)
         else:
             raise Exception(str(diff_type) + "is not value of DiffType")
+
+    def resolve_conflict(self, diff, new_content):
+
+        if new_content.is_deleted:
+            if exists(diff.src1):
+                os.remove(diff.src1)
+            if exists(diff.src2):
+                os.remove(diff.src2)
+        elif new_content.is_binary:
+            if new_content.path != diff.src1:
+                if exists(diff.src1):
+                    os.remove(diff.src1)
+                copyfile(new_content.path, diff.src1)
+            if new_content.path != diff.src2:
+                if exists(diff.src2):
+                    os.remove(diff.src2)
+                copyfile(new_content.path, diff.src2)
+        else:
+            with open(diff.src1, "w") as file:
+                file.write(new_content.text)
+
+            with open(diff.src2, "w") as file:
+                file.write(new_content.text)
+        self.update_sync_file(diff, new_content.is_deleted)

@@ -1,6 +1,7 @@
 import difflib
 
 from utilities.conflict_resolver.content import Content
+from utilities.sync_core_libs.sync_core_new import SyncFile
 
 START_DIFF = ">>>>>>>>>>>>>>>>"
 END_DIFF = "<<<<<<<<<<<<<<<<"
@@ -34,7 +35,7 @@ class ConflictResolverFile:
 
     def resolve(self, new_content):
         self.sync_core.resolve_conflict(
-            self.conflict.path1, self.conflict.path2, new_content
+            SyncFile(self.conflict.path1, self.conflict.path2, self.conflict.type, None), new_content
         )
 
     def is_resolved(self, new_content: Content):
