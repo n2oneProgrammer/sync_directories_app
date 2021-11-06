@@ -8,4 +8,5 @@ class DiffType(Enum):
     Create = "create"
     Edit = "edit"
     Delete = "delete"
+    RemoveRemove = "removeremove"
     Same = "same"

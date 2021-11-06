@@ -4,7 +4,6 @@ import shutil
 # import threading
 from os.path import basename, exists, isdir, join, normpath, relpath
 from shutil import copyfile
-from typing import List
 
 from deepdiff import DeepDiff
 
@@ -12,6 +11,7 @@ from utilities.conflict import Conflict
 from utilities.sync_core_libs.diff_type import DiffType
 from utilities.hash import md5
 from utilities.sync_core_libs.status_sync_file import StatusSyncFile
+from copy import deepcopy
 
 
 class SyncFile:
@@ -74,10 +74,6 @@ class SyncCore:
                 o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
                 self.diff_list.append(o)
                 self.add_file_if_diff(new_src1, new_src2, o)
-                # src = relpath(obj, start_dir)
-                # result_struct[src] = md5(obj)
-
-        # print("ADD ALL ", src_dir1, src_dir2)
 
     def get_md5_file_from_sync_file(self, find_src):
         a = relpath(normpath(find_src), self.src_dir1).split("\\")
@@ -112,18 +108,12 @@ class SyncCore:
         return True
 
     def add_file_if_diff(self, src1, src2, diff_list_object):
-        import time
-
-        start = time.time()
-
         md5_src1 = None
         md5_src2 = None
         if exists(src1):
             md5_src1 = md5(src1)
-        end_md5_1 = time.time()
         if exists(src2):
             md5_src2 = md5(src2)
-        end_md5_2 = time.time()
         md5_sync_file = self.get_md5_file_from_sync_file(src1)
 
         if md5_sync_file is None:
@@ -148,40 +138,51 @@ class SyncCore:
                     self.change_status_diff_list(DiffType.Edit, diff_list_object)
             else:
                 if md5_src1 is None:
-                    self.change_status_diff_list(DiffType.RemoveEditConflict, diff_list_object)
+                    if md5_src2 is None:
+                        self.change_status_diff_list(DiffType.RemoveRemove, diff_list_object)
+                    else:
+                        self.change_status_diff_list(DiffType.RemoveEditConflict, diff_list_object)
                 elif md5_src2 is None:
                     self.change_status_diff_list(DiffType.RemoveEditConflict, diff_list_object, True)
                 else:
                     self.change_status_diff_list(DiffType.EditEditConflict, diff_list_object)
-            end = time.time()
-            print(src1, src2, end - end_md5_2, end_md5_2 - end_md5_1, end_md5_1 - start)
 
-    def generate_structure(self, src_dir1, src_dir2):
+    def find_dir_in_sync_file(self, sync_file, dir_name):
+        for key in sync_file.keys():
+            if normpath(key).split("\\")[-1] == dir_name:
+                return key
+        return None
+
+    def generate_structure(self, src_dir1, src_dir2, sync_file_state=None):
+        if sync_file_state is None:
+            sync_file_state = deepcopy(self.sync_file)
         struct1 = [f for f in os.listdir(src_dir1)]
         struct1_copy = struct1.copy()
         struct2 = [f for f in os.listdir(src_dir2)]
         for obj in struct1:
+
             if basename(obj) == self.SYNC_STRUCT_FILE:
                 continue
             new_src1 = join(src_dir1, obj)
             new_src2 = join(src_dir2, obj)
+            sync_dir = self.find_dir_in_sync_file(sync_file_state, obj)
             if isdir(join(src_dir1, obj)):
 
                 if obj in struct2:
-                    self.generate_structure(new_src1, new_src2)
+                    self.generate_structure(new_src1, new_src2, sync_file_state[sync_dir])
+                    del sync_file_state[sync_dir]
                 else:
+                    del sync_file_state[sync_dir]
                     self.add_all_as_diff(new_src1, new_src2)
             else:
                 o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
 
                 # with self.diff_list_lock:
                 self.diff_list.append(o)
+                del sync_file_state[sync_dir]
                 self.add_file_if_diff(new_src1, new_src2, o)
                 # add_file_if_diff_thread = threading.Thread(target=self.add_file_if_diff, args=[new_src1, new_src2, o])
                 # add_file_if_diff_thread.start()
-                # self.add_file_if_diff(new_src1, new_src2, o)
-                # src = relpath(obj, start_dir)
-                # result_struct[src] = md5(obj)
             if obj in struct2:
                 struct2.remove(obj)
             struct1_copy.remove(obj)
@@ -189,25 +190,36 @@ class SyncCore:
         for obj in struct2:
             if basename(obj) == self.SYNC_STRUCT_FILE:
                 continue
+
             new_src1 = join(src_dir1, obj)
             new_src2 = join(src_dir2, obj)
+            sync_dir = self.find_dir_in_sync_file(sync_file_state, obj)
             if isdir(join(src_dir1, obj)):
 
                 if obj in struct1_copy:
-                    self.generate_structure(new_src1, new_src2)
+                    self.generate_structure(new_src1, new_src2, sync_file_state[sync_dir])
                 else:
+                    del sync_file_state[sync_dir]
                     self.add_all_as_diff(new_src1, new_src2)
             else:
                 o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
                 # with self.diff_list_lock:
                 #     self.diff_list.append(o)
                 self.diff_list.append(o)
+                del sync_file_state[sync_dir]
                 self.add_file_if_diff(new_src1, new_src2, o)
                 # add_file_if_diff_thread = threading.Thread(target=self.add_file_if_diff, args=[new_src1, new_src2, o])
                 # add_file_if_diff_thread.start()
-                # self.add_file_if_diff(new_src1, new_src2, o)
-                # src = relpath(obj, start_dir)
-                # result_struct[src] = md5(obj)
+        for obj in sync_file_state.copy().keys():
+            new_src1 = join(src_dir1, obj)
+            new_src2 = join(src_dir2, obj)
+            o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
+            # with self.diff_list_lock:
+            #     self.diff_list.append(o)
+            self.diff_list.append(o)
+            self.add_file_if_diff(new_src1, new_src2, o)
+            del sync_file_state[obj]
+            # add_file_if_diff_thread = threading.Thread(target=
 
     def make_diff(self):
         self.make_diff_thread()
@@ -223,18 +235,8 @@ class SyncCore:
         self.generate_structure(self.src_dir1, self.src_dir2)
         self.is_start = True
 
-    # def compare_dirs(self):
-    #     with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'r') as infile:
-    #         old = json.load(infile)
-    #         new1 = self.generate_structure(self.src_dir1)
-    #         new2 = self.generate_structure(self.src_dir2)
-    #         self.dir1_diff_add, self.dir1_diff_del, self.dir1_diff_edit = self.compare_dictionary(old, new1)
-    #         self.dir2_diff_add, self.dir2_diff_del, self.dir2_diff_edit = self.compare_dictionary(old, new2)
-    #     print("step 4")
-
     def update_sync_file(self, diff, is_delete):
         src1 = diff.src1
-        src2 = diff.src1
 
         a = relpath(normpath(src1), self.src_dir1).split("\\")
         b = relpath(normpath(src1), self.src_dir2).split("\\")
@@ -245,14 +247,12 @@ class SyncCore:
         for c in src_file[1:]:
             place = place[s]
             s = join(s, c)
-            print(s)
 
         if is_delete:
             del place[s]
         else:
             place[s] = md5(src1)
 
-        print(self.sync_file)
         with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'w') as outfile:
             json.dump(self.sync_file, outfile)
 
@@ -267,7 +267,6 @@ class SyncCore:
         self.diff_list.remove(diff)
 
     def merge_delete_file(self, diff: SyncFile):
-        print(diff)
         if not exists(diff.src2):
             return
         if isdir(diff.src2):
@@ -278,11 +277,14 @@ class SyncCore:
         self.update_sync_file(diff, True)
         self.diff_list.remove(diff)
 
+    def merge_removeremove_file(self, diff: SyncFile):
+        self.update_sync_file(diff, True)
+        self.diff_list.remove(diff)
+
     def merge_edit_file(self, diff: SyncFile):
         copyfile(diff.src1, diff.src2)
         self.update_sync_file(diff, False)
         self.diff_list.remove(diff)
-        pass
 
     def merge_with_out_conflict(self, diff: SyncFile):
         diff_type = diff.type
@@ -292,6 +294,8 @@ class SyncCore:
             self.merge_delete_file(diff)
         elif diff_type is DiffType.Edit:
             self.merge_edit_file(diff)
+        elif diff_type is DiffType.RemoveRemove:
+            self.merge_removeremove_file(diff)
         else:
             raise Exception(str(diff_type) + "is not value of DiffType")
 
