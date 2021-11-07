@@ -14,14 +14,16 @@ class MainScreen(Screen):
     def __init__(self, **kw):
         super().__init__(**kw)
         self._load_sync_file()
-        
+
     def check_for_update(self):
         if Settings().get("update") == True:
             self._load_sync_file()
 
     def _load_sync_file(self):
-        self.syncs = Folder.load_all(self.set_folder_list)
+        self.syncs = Folder.load_all()
         Settings().set("update", False)
+        for sync in self.syncs:
+            sync.event.new_status += self.set_folder_list
 
     def set_folder_list(self):
         self.check_for_update()
@@ -45,7 +47,7 @@ class MainScreen(Screen):
 
     def sync_all(self):
         for sync in self.syncs:
-            sync.sync(self.set_folder_list)
+            sync.sync()
 
     def goToSync(self, sync):
         if not sync.valid():

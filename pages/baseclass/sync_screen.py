@@ -1,6 +1,10 @@
+from kivy.metrics import dp
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.uix.recycleview import RecycleView
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
+from kivymd.uix.label import MDLabel
 from utilities.screens import ScreensUtilities
 
 
@@ -40,7 +44,7 @@ class SyncScreen(Screen):
         ScreensUtilities().goTo("main", True)
 
     def sync_now(self):
-        self.sync.sync(self.set_conflicts_list)
+        self.sync.sync()
 
     def resolve_all(self):
         self.sync.resolve_all()
@@ -49,16 +53,38 @@ class SyncScreen(Screen):
         conflict.resolve()
 
     def set_conflicts_list(self):
-        self.ids.rv.data = []
+
+        view = RecycleView(size_hint=(1, 0.6))
+        view.key_viewclass = "viewclass"
+        view.key_size = "height"
+
+        r = RecycleBoxLayout(
+            padding=dp(5),
+            default_size=(None, dp(60)),
+            default_size_hint=(1, None),
+            size_hint_y=None,
+            orientation="vertical",
+        )
+        r.height = self.content.height
+
+        view.add_widget(r)
+        self.content.clear_widgets()
+        self.content.add_widget(view)
+        self.content.add_widget(MDLabel(text="ok"))
+
+        print("okok")
+        view.data = []
         collisions = self.sync.conflicts
         for item in collisions:
-            self.ids.rv.data.append(
+            print(item)
+            view.data.append(
                 {
                     "viewclass": "SyncListItem",
                     "icon": item.type.value,
-                    "text": f"{item.path1} - {item.path2}",
+                    "text": "XDDDDDDDDD",  # f"{item.path1} - {item.path2}",
                     "on_release": lambda conf=item, sync=self.sync: ScreensUtilities().goToConfilct(
                         sync, conf
                     ),
                 }
             )
+        print("xd")
