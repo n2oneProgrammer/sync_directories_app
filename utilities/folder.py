@@ -2,51 +2,81 @@ import uuid
 from os import path
 from threading import Thread
 
+from events import Events
+
+from utilities.conflict_resolver.conflict_resolver_file import \
+    ConflictResolverFile
 from utilities.notification import Notification
 from utilities.settings import Settings
-from utilities.sync_core import SyncCore
+from utilities.sync_core_libs.sync_core import SyncCore
 
 
 class Folder:
     @staticmethod
-    def load_all(callback=lambda: None):
+    def load_all():
         syncs = Settings().get("syncs")
         if syncs is None:
             Settings().set("syncs", [])
             syncs = []
         objs = []
         for item in syncs:
-            objs.append(Folder(item, callback))
+            objs.append(Folder(item))
         return objs
 
-    def __init__(self, data, callback=lambda: None):
+    def __init__(self, data):
         self.name = data["name"]
         self.dir1 = data["dir1"]
         self.dir2 = data["dir2"]
+
         if data.get("id") is None:
             self.id = uuid.uuid3(uuid.NAMESPACE_X500, self.name).hex
         else:
             self.id = data["id"]
-        self.sync_core = SyncCore(self.dir1, self.dir2)
+
+        self.event = Events(("new_status", "new_detail"))
+
+        self.sync_core = None
         self.conflicts = []
         self.in_sync = False
+        self.detail = ""
         self.save()
 
-        self.sync(callback)
+        self.sync()
 
-    def sync(self, callback=lambda: None):
-        Thread(target=self._sync, args=(callback,), name=f"Sync {self.name}").start()
+    def sync(self):
+        Thread(target=self._sync, name=f"Sync {self.name}").start()
 
-    def _sync(self, callback):
+    def _sync(self):
         if self.in_sync or not self.valid():
-            callback()
+            self.event.new_status()
             return
+        self.event.new_status()
         self.in_sync = True
-        callback()
 
         print("Syncing:", self.name, self.in_sync)
-        self.conflicts = self.sync_core.sync_dir()
+        self.detail = ""
+        self.conflicts=[]
+        self.detail += "Looking for differences...\n"
+        self.event.new_detail()
+        self.sync_core = SyncCore(self.dir1, self.dir2)
 
+        for item in self.sync_core.diff_list:
+            print(item)
+            c = item.get_conflict()
+            if c is None:
+                self.detail += (
+                    f"Coping {item.get_name()}\n"
+                    if item.get_name() is None
+                    else "Removing file\n"
+                )
+
+                self.event.new_detail()
+                self.sync_core.merge_with_out_conflict(item)
+            else:
+                self.detail += "Conflict found\n"
+                self.event.new_detail()
+                self.conflicts.append(c)
+        print(self.conflicts)
         if len(self.conflicts) > 0:
             Notification().notify(
                 "Detected confilcts",
@@ -54,7 +84,8 @@ class Folder:
             )
 
         self.in_sync = False
-        callback()
+        self.event.new_status()
+        print("done")
 
     def resolve_all(self):
         for item in self.conflicts:
@@ -81,9 +112,9 @@ class Folder:
         self.force_update()
 
     def force_update(self):
-        if Settings().get("update")==True:
+        if Settings().get("update") == True:
             return
-        Settings().set("update",True)
+        Settings().set("update", True)
 
     def to_dict(self):
         return {"id": self.id, "name": self.name, "dir1": self.dir1, "dir2": self.dir2}

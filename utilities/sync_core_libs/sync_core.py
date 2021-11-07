@@ -1,17 +1,17 @@
 import json
 import os
 import shutil
+from copy import deepcopy
+
 # import threading
 from os.path import basename, exists, isdir, join, normpath, relpath
 from shutil import copyfile
 
 from deepdiff import DeepDiff
-
 from utilities.conflict import Conflict
-from utilities.sync_core_libs.diff_type import DiffType
 from utilities.hash import md5
+from utilities.sync_core_libs.diff_type import DiffType
 from utilities.sync_core_libs.status_sync_file import StatusSyncFile
-from copy import deepcopy
 
 
 class SyncFile:
@@ -21,9 +21,24 @@ class SyncFile:
         self.type = type
         self.status = status
 
+    def get_name(self):
+        if self.type is DiffType.Create:
+            return os.path.basename(self.src1)
+        elif self.type is DiffType.Delete:
+            return None
+        elif self.type is DiffType.Edit:
+            return f"{os.path.basename(self.src1)} -> {os.path.basename(self.src2)}"
+        elif self.type is DiffType.RemoveRemove:
+            return None
+
     def get_conflict(self):
-        if self.type in [DiffType.AddAddConflict, DiffType.EditEditConflict, DiffType.RemoveEditConflict]:
+        if self.type in [
+            DiffType.AddAddConflict,
+            DiffType.EditEditConflict,
+            DiffType.RemoveEditConflict,
+        ]:
             return Conflict(self.src1, self.src2, self.type)
+        return None
 
 
 class SyncCore:
@@ -52,11 +67,17 @@ class SyncCore:
         removed_items = []
         edited_items = []
         if "dictionary_item_added" in a:
-            added_items = [item.split("[")[-1][1:-2] for item in a['dictionary_item_added'].items]
-        if 'dictionary_item_removed' in a:
-            removed_items = [item.split("[")[-1][1:-2] for item in a['dictionary_item_removed'].items]
-        if 'values_changed' in a:
-            edited_items = [key.split("[")[-1][1:-2] for key, value in a['values_changed'].items()]
+            added_items = [
+                item.split("[")[-1][1:-2] for item in a["dictionary_item_added"].items
+            ]
+        if "dictionary_item_removed" in a:
+            removed_items = [
+                item.split("[")[-1][1:-2] for item in a["dictionary_item_removed"].items
+            ]
+        if "values_changed" in a:
+            edited_items = [
+                key.split("[")[-1][1:-2] for key, value in a["values_changed"].items()
+            ]
 
         return added_items, removed_items, edited_items
 
@@ -78,7 +99,7 @@ class SyncCore:
     def get_md5_file_from_sync_file(self, find_src):
         a = relpath(normpath(find_src), self.src_dir1).split("\\")
         b = relpath(normpath(find_src), self.src_dir2).split("\\")
-        src_file = (b if len(a) > len(b) else a)
+        src_file = b if len(a) > len(b) else a
         s = src_file[0]
         place = self.sync_file
         for c in src_file[1:]:
@@ -126,7 +147,9 @@ class SyncCore:
         else:
             if md5_sync_file == md5_src1:
                 if md5_src2 is None:
-                    self.change_status_diff_list(DiffType.Delete, diff_list_object, True)
+                    self.change_status_diff_list(
+                        DiffType.Delete, diff_list_object, True
+                    )
                 elif not md5_sync_file == md5_src2:
                     self.change_status_diff_list(DiffType.Edit, diff_list_object, True)
                 else:
@@ -139,13 +162,21 @@ class SyncCore:
             else:
                 if md5_src1 is None:
                     if md5_src2 is None:
-                        self.change_status_diff_list(DiffType.RemoveRemove, diff_list_object)
+                        self.change_status_diff_list(
+                            DiffType.RemoveRemove, diff_list_object
+                        )
                     else:
-                        self.change_status_diff_list(DiffType.RemoveEditConflict, diff_list_object)
+                        self.change_status_diff_list(
+                            DiffType.RemoveEditConflict, diff_list_object
+                        )
                 elif md5_src2 is None:
-                    self.change_status_diff_list(DiffType.RemoveEditConflict, diff_list_object, True)
+                    self.change_status_diff_list(
+                        DiffType.RemoveEditConflict, diff_list_object, True
+                    )
                 else:
-                    self.change_status_diff_list(DiffType.EditEditConflict, diff_list_object)
+                    self.change_status_diff_list(
+                        DiffType.EditEditConflict, diff_list_object
+                    )
 
     def find_dir_in_sync_file(self, sync_file, dir_name):
         for key in sync_file.keys():
@@ -169,7 +200,9 @@ class SyncCore:
             if isdir(join(src_dir1, obj)):
 
                 if obj in struct2:
-                    self.generate_structure(new_src1, new_src2, sync_file_state[sync_dir])
+                    self.generate_structure(
+                        new_src1, new_src2, sync_file_state[sync_dir]
+                    )
                     del sync_file_state[sync_dir]
                 else:
                     del sync_file_state[sync_dir]
@@ -179,7 +212,8 @@ class SyncCore:
 
                 # with self.diff_list_lock:
                 self.diff_list.append(o)
-                del sync_file_state[sync_dir]
+                if sync_dir is not None:
+                    del sync_file_state[sync_dir]
                 self.add_file_if_diff(new_src1, new_src2, o)
                 # add_file_if_diff_thread = threading.Thread(target=self.add_file_if_diff, args=[new_src1, new_src2, o])
                 # add_file_if_diff_thread.start()
@@ -197,7 +231,9 @@ class SyncCore:
             if isdir(join(src_dir1, obj)):
 
                 if obj in struct1_copy:
-                    self.generate_structure(new_src1, new_src2, sync_file_state[sync_dir])
+                    self.generate_structure(
+                        new_src1, new_src2, sync_file_state[sync_dir]
+                    )
                 else:
                     del sync_file_state[sync_dir]
                     self.add_all_as_diff(new_src1, new_src2)
@@ -228,9 +264,9 @@ class SyncCore:
 
     def make_diff_thread(self):
         if not exists(join(self.src_dir1, self.SYNC_STRUCT_FILE)):
-            with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'w') as outfile:
+            with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), "w") as outfile:
                 json.dump({}, outfile)
-        with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'r') as infile:
+        with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), "r") as infile:
             self.sync_file = json.load(infile)
         self.generate_structure(self.src_dir1, self.src_dir2)
         self.is_start = True
@@ -240,7 +276,7 @@ class SyncCore:
 
         a = relpath(normpath(src1), self.src_dir1).split("\\")
         b = relpath(normpath(src1), self.src_dir2).split("\\")
-        src_file = (b if len(a) > len(b) else a)
+        src_file = b if len(a) > len(b) else a
 
         s = src_file[0]
         place = self.sync_file
@@ -253,7 +289,7 @@ class SyncCore:
         else:
             place[s] = md5(src1)
 
-        with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), 'w') as outfile:
+        with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), "w") as outfile:
             json.dump(self.sync_file, outfile)
 
     def merge_create_file(self, diff: SyncFile):
