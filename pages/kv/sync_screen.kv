@@ -1,7 +1,7 @@
 <SyncScreen>:
 	title: title
 	dir: dir
-	content: content
+	log: log
 
 	MDBoxLayout:
 		orientation: "vertical"
@@ -13,7 +13,6 @@
 
 		MDBoxLayout:
 			orientation: "vertical"
-			spacing: dp(10)
         	padding: dp(20)
 
 			MDLabel:
@@ -21,10 +20,27 @@
 				id: dir
 				halign: "center"
 
-			MDBoxLayout:
-				size_hint: (1,0.6)
-				id: content
+			MDSpinner:
+				id: spiner
+				size_hint: None, None
+				size: dp(0), dp(0)
+				pos_hint: {'center_x': .5, 'center_y': .5}
+				active: False
 
+			RecycleView:
+				size_hint: (1,0.6)
+				id: rv
+				key_viewclass: 'viewclass'
+				key_size: 'height'
+
+				RecycleBoxLayout:
+					padding: dp(5)
+					default_size: None, dp(60)
+					default_size_hint: 1, None
+					size_hint_y: None
+					height: self.minimum_height
+					orientation: 'vertical'
+			
 			AnchorLayout:
 				size_hint: (1,0.2)
 				anchor_x: "center"
@@ -38,6 +54,7 @@
 						text: "Sync"
 						on_press: root.sync_now()
 
-					MDRaisedButton:
-						text: "Resolve all"
-						on_press: root.resolve_all()
+					MDLabel:
+						size_hint: (1,0.2)
+						id: log
+						halign: "right"
