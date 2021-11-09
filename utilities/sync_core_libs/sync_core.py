@@ -205,7 +205,8 @@ class SyncCore:
                     )
                     del sync_file_state[sync_dir]
                 else:
-                    del sync_file_state[sync_dir]
+                    if sync_dir is not None:
+                        del sync_file_state[sync_dir]
                     self.add_all_as_diff(new_src1, new_src2)
             else:
                 o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)

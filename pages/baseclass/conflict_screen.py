@@ -73,4 +73,5 @@ class ConflictScreen(Screen):
             ).open()
             return
         self.resolver.resolve(self.content)
-        ScreensUtilities().goToSync(self.sync, True, True)
+        self.sync.resolve(self.conflict)
+        ScreensUtilities().goToSync(self.sync, True)
