@@ -97,9 +97,22 @@ class SyncCore:
                 self.add_file_if_diff(new_src1, new_src2, o)
 
     def get_md5_file_from_sync_file(self, find_src):
-        a = relpath(normpath(find_src), self.src_dir1).split("\\")
-        b = relpath(normpath(find_src), self.src_dir2).split("\\")
-        src_file = b if len(a) > len(b) else a
+        try:
+            a = relpath(normpath(find_src), self.src_dir1).split("\\")
+        except ValueError:
+            a = None
+        try:
+            b = relpath(normpath(find_src), self.src_dir2).split("\\")
+        except ValueError:
+            b = None
+
+        if a is None:
+            src_file = b
+        elif b is None:
+            src_file = a
+        else:
+            src_file = b if len(a) > len(b) else a
+
         s = src_file[0]
         place = self.sync_file
         for c in src_file[1:]:
@@ -200,10 +213,15 @@ class SyncCore:
             if isdir(join(src_dir1, obj)):
 
                 if obj in struct2:
+                    if sync_dir is not None:
+                        sub_dir = sync_file_state[sync_dir]
+                    else:
+                        sub_dir = {}
                     self.generate_structure(
-                        new_src1, new_src2, sync_file_state[sync_dir]
+                        new_src1, new_src2, sub_dir
                     )
-                    del sync_file_state[sync_dir]
+                    if sync_dir is not None:
+                        del sync_file_state[sync_dir]
                 else:
                     if sync_dir is not None:
                         del sync_file_state[sync_dir]
@@ -232,8 +250,12 @@ class SyncCore:
             if isdir(join(src_dir1, obj)):
 
                 if obj in struct1_copy:
+                    if sync_dir is not None:
+                        sub_dir = sync_file_state[sync_dir]
+                    else:
+                        sub_dir = {}
                     self.generate_structure(
-                        new_src1, new_src2, sync_file_state[sync_dir]
+                        new_src1, new_src2, sub_dir
                     )
                 else:
                     del sync_file_state[sync_dir]
@@ -243,7 +265,8 @@ class SyncCore:
                 # with self.diff_list_lock:
                 #     self.diff_list.append(o)
                 self.diff_list.append(o)
-                del sync_file_state[sync_dir]
+                if sync_dir is not None:
+                    del sync_file_state[sync_dir]
                 self.add_file_if_diff(new_src1, new_src2, o)
                 # add_file_if_diff_thread = threading.Thread(target=self.add_file_if_diff, args=[new_src1, new_src2, o])
                 # add_file_if_diff_thread.start()
