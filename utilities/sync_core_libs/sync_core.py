@@ -279,6 +279,7 @@ class SyncCore:
         for obj in sync_file_state.copy().keys():
             new_src1 = join(src_dir1, obj)
             new_src2 = join(src_dir2, obj)
+
             o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
             # with self.diff_list_lock:
             #     self.diff_list.append(o)
@@ -326,6 +327,7 @@ class SyncCore:
                 place = place[s]
             else:
                 place[s] = {}
+                place = place[s]
             s = join(s, c)
 
         if is_delete:
