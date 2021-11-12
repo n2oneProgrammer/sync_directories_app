@@ -4,7 +4,8 @@ import shutil
 from copy import deepcopy
 
 # import threading
-from os.path import basename, exists, isdir, join, normpath, relpath
+from os.path import basename, exists, isdir, join, normpath, relpath, dirname
+from pathlib import Path
 from shutil import copyfile
 
 from deepdiff import DeepDiff
@@ -261,13 +262,18 @@ class SyncCore:
                     del sync_file_state[sync_dir]
                     self.add_all_as_diff(new_src1, new_src2)
             else:
-                o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
-                # with self.diff_list_lock:
-                #     self.diff_list.append(o)
-                self.diff_list.append(o)
-                if sync_dir is not None:
-                    del sync_file_state[sync_dir]
-                self.add_file_if_diff(new_src1, new_src2, o)
+                if isdir(join(src_dir2, obj)):
+                    if sync_dir is not None:
+                        del sync_file_state[sync_dir]
+                    self.add_all_as_diff(new_src2, new_src1)
+                else:
+                    o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
+                    # with self.diff_list_lock:
+                    #     self.diff_list.append(o)
+                    self.diff_list.append(o)
+                    if sync_dir is not None:
+                        del sync_file_state[sync_dir]
+                    self.add_file_if_diff(new_src1, new_src2, o)
                 # add_file_if_diff_thread = threading.Thread(target=self.add_file_if_diff, args=[new_src1, new_src2, o])
                 # add_file_if_diff_thread.start()
         for obj in sync_file_state.copy().keys():
@@ -298,14 +304,28 @@ class SyncCore:
     def update_sync_file(self, diff, is_delete):
         src1 = diff.src1
 
-        a = relpath(normpath(src1), self.src_dir1).split("\\")
-        b = relpath(normpath(src1), self.src_dir2).split("\\")
-        src_file = b if len(a) > len(b) else a
+        try:
+            a = relpath(normpath(src1), self.src_dir1).split("\\")
+        except ValueError:
+            a = None
+        try:
+            b = relpath(normpath(src1), self.src_dir2).split("\\")
+        except ValueError:
+            b = None
 
+        if a is None:
+            src_file = b
+        elif b is None:
+            src_file = a
+        else:
+            src_file = b if len(a) > len(b) else a
         s = src_file[0]
         place = self.sync_file
         for c in src_file[1:]:
-            place = place[s]
+            if s in place:
+                place = place[s]
+            else:
+                place[s] = {}
             s = join(s, c)
 
         if is_delete:
@@ -322,6 +342,8 @@ class SyncCore:
         if isdir(src):
             shutil.copytree(src, dst)
         else:
+
+            Path(dirname(dst)).mkdir(parents=True, exist_ok=True)
             copyfile(src, dst)
         self.update_sync_file(diff, False)
         self.diff_list.remove(diff)
