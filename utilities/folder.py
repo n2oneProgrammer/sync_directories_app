@@ -4,8 +4,7 @@ from threading import Thread
 
 from events import Events
 
-from utilities.conflict_resolver.conflict_resolver_file import \
-    ConflictResolverFile
+from utilities.conflict_resolver.conflict_resolver_file import ConflictResolverFile
 from utilities.notification import Notification
 from utilities.settings import Settings
 from utilities.sync_core_libs.sync_core import SyncCore
@@ -61,12 +60,14 @@ class Folder:
 
         for item in self.sync_core.diff_list:
             print(item)
+
+        for item in self.sync_core.diff_list:
             c = item.get_conflict()
             if c is None:
                 self.detail = (
                     "Removing file..."
                     if item.get_name() is None
-                    else f"Coping {item.get_name()}..."
+                    else f"Coping {item.get_name()}"
                 )
 
                 self.event.new_detail()
@@ -88,7 +89,7 @@ class Folder:
         self.event.new_detail()
         print("DONE")
 
-    def resolve(self,confilct):
+    def resolve(self, confilct):
         self.conflicts.remove(confilct)
 
     def save(self):

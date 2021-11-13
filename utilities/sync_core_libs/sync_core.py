@@ -2,9 +2,8 @@ import json
 import os
 import shutil
 from copy import deepcopy
-
 # import threading
-from os.path import basename, exists, isdir, join, normpath, relpath, dirname
+from os.path import basename, dirname, exists, isdir, join, normpath, relpath
 from pathlib import Path
 from shutil import copyfile
 
@@ -21,6 +20,9 @@ class SyncFile:
         self.src2 = src2
         self.type = type
         self.status = status
+
+    def __str__(self):
+        return f"{self.type}: {self.src1} - {self.src2} | {self.status}"
 
     def get_name(self):
         if self.type is DiffType.Create:
