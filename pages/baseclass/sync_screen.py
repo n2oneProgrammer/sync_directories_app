@@ -45,13 +45,34 @@ class SyncScreen(Screen):
         ScreensUtilities().goTo("main", True)
 
     def sync_now(self):
-        self.sync.sync()
+        if self.sync_button.text == "Sync":
+            self.sync.sync()
+        elif self.sync_button.text == "Stop":
+            self.sync.stop()
 
     def resolve(self, conflict):
         conflict.resolve()
 
     def detail(self):
         self.log.text = self.sync.detail
+        if self.sync.in_sync:
+            if self.sync.detail != "Looking for differences...":
+                if self.sync.break_sync == True:
+                    self.sync_button.text = "Stoping..."
+                    self.sync_button.disabled = True
+
+                else:
+                    self.sync_button.text = "Stop"
+                    self.sync_button.disabled = False
+
+            else:
+                self.sync_button.text = "Syncing..."
+                self.sync_button.disabled = True
+
+        else:
+            self.sync_button.text = "Sync"
+            self.sync_button.disabled = False
+
 
     def set_conflicts_list(self):
         self.ids.rv.data = []

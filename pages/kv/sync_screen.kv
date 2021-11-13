@@ -2,6 +2,7 @@
 	title: title
 	dir: dir
 	log: log
+	sync_button: sync_button
 
 	MDBoxLayout:
 		orientation: "vertical"
@@ -51,6 +52,7 @@
 					spacing: dp(20)
 				
 					MDRaisedButton:
+						id: sync_button
 						text: "Sync"
 						on_press: root.sync_now()
 
