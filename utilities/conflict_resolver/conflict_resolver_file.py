@@ -1,6 +1,7 @@
 import difflib
 
 from utilities.conflict_resolver.content import Content
+from utilities.sync_core_libs.sync_core import SyncFile
 
 START_DIFF = ">>>>>>>>>>>>>>>>"
 END_DIFF = "<<<<<<<<<<<<<<<<"
@@ -34,7 +35,10 @@ class ConflictResolverFile:
 
     def resolve(self, new_content):
         self.sync_core.resolve_conflict(
-            self.conflict.path1, self.conflict.path2, new_content
+            SyncFile(
+                self.conflict.path1, self.conflict.path2, self.conflict.type, None
+            ),
+            new_content,
         )
 
     def is_resolved(self, new_content: Content):
@@ -53,9 +57,9 @@ class ConflictResolverFile:
         result = ""
 
         for line in list(
-                difflib.unified_diff(
-                    self.get_content_path1().text, self.get_content_path2().text
-                )
+            difflib.unified_diff(
+                self.get_content_path1().text, self.get_content_path2().text
+            )
         )[2:] + [""]:
             if line.startswith("@@"):
                 continue
