@@ -37,6 +37,7 @@ class Folder:
         self.sync_core = None
         self.conflicts = []
         self.in_sync = False
+        self.break_sync = False
         self.detail = ""
         self.save()
 
@@ -44,6 +45,10 @@ class Folder:
 
     def sync(self):
         Thread(target=self._sync, name=f"Sync {self.name}").start()
+
+    def stop(self):
+        self.break_sync = True
+        self.event.new_detail()
 
     def _sync(self):
         if self.in_sync or not self.valid():
@@ -59,6 +64,14 @@ class Folder:
         self.sync_core = SyncCore(self.dir1, self.dir2)
 
         for item in self.sync_core.diff_list.copy():
+            if self.break_sync:
+                self.break_sync = False
+                self.in_sync = False
+                self.detail = "Sync stopped."
+                self.event.new_status()
+                self.event.new_detail()
+                return
+
             c = item.get_conflict()
             if c is None:
                 self.detail = (
