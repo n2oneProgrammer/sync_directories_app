@@ -4,3 +4,4 @@ deepdiff
 pystray
 appdirs
 win10toast
+Events
