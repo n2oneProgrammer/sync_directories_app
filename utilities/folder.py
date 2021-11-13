@@ -58,10 +58,7 @@ class Folder:
         self.event.new_detail()
         self.sync_core = SyncCore(self.dir1, self.dir2)
 
-        for item in self.sync_core.diff_list:
-            print(item)
-
-        for item in self.sync_core.diff_list:
+        for item in self.sync_core.diff_list.copy():
             c = item.get_conflict()
             if c is None:
                 self.detail = (
