@@ -20,9 +20,6 @@ class Notification:
 
     def notify(self, title, message, duration=5):
 
-        # TODO: Remove debug
-        return
-
         Thread(
             target=self._notify,
             name="Notifcation",

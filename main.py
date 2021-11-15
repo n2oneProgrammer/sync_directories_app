@@ -23,21 +23,14 @@ class Tray:
         self.icon = Icon(get_name(), title=get_name())
         self.icon.icon = Image.open(get_icon_path())
         self.icon.menu = Menu(
-            MenuItem("Run", self.start_app),
+            MenuItem("Open", self.start_app),
             MenuItem("Sync now", self.sync_now),
             MenuItem("Close", self.exit),
         )
 
     def sync_now(self):
-        list = Folder.load_all(callback=self.sync_now_callback)
-        self.length_sync = len(list)
+        list = Folder.load_all()
         Notification().notify("Sync", f"Syncs {len(list)} folders.")
-
-    def sync_now_callback(self):
-        if self.length_sync < 0:
-            return
-        self.length_sync = -1
-        Notification().notify("Sync", f"Syncs complited!")
 
     def run(self):
         DeviceListener(self.sync_now).start()
@@ -53,9 +46,4 @@ class Tray:
 
 
 if __name__ == "__main__":
-
-    # TODO: Remove debug
-    from app import App
-
-    App().run()
-    # Tray().run()
+    Tray().run()
