@@ -3,13 +3,13 @@ import os
 import shutil
 from copy import deepcopy
 # import threading
-from os.path import basename, dirname, exists, isdir, join, normpath, relpath
+from os.path import basename, dirname, join, normpath, relpath
 from pathlib import Path
 from shutil import copyfile
 
 from deepdiff import DeepDiff
 from utilities.conflict import Conflict
-from utilities.hash import md5
+from utilities.hash import Hash
 from utilities.sync_core_libs.diff_type import DiffType
 from utilities.sync_core_libs.status_sync_file import StatusSyncFile
 
@@ -92,7 +92,7 @@ class SyncCore:
                 continue
             new_src1 = join(src_dir1, obj)
             new_src2 = join(src_dir2, obj)
-            if isdir(join(src_dir1, obj)):
+            if os.path.isdir(join(src_dir1, obj)):
                 self.add_all_as_diff(new_src1, new_src2)
             else:
                 o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
@@ -147,10 +147,10 @@ class SyncCore:
     def add_file_if_diff(self, src1, src2, diff_list_object):
         md5_src1 = None
         md5_src2 = None
-        if exists(src1):
-            md5_src1 = md5(src1)
-        if exists(src2):
-            md5_src2 = md5(src2)
+        if os.path.exists(src1):
+            md5_src1 = Hash.md5(src1)
+        if os.path.exists(src2):
+            md5_src2 = Hash.md5(src2)
         md5_sync_file = self.get_md5_file_from_sync_file(src1)
 
         if md5_sync_file is None:
@@ -213,7 +213,7 @@ class SyncCore:
             new_src1 = join(src_dir1, obj)
             new_src2 = join(src_dir2, obj)
             sync_dir = self.find_dir_in_sync_file(sync_file_state, obj)
-            if isdir(join(src_dir1, obj)):
+            if os.path.isdir(join(src_dir1, obj)):
 
                 if obj in struct2:
                     if sync_dir is not None:
@@ -250,7 +250,7 @@ class SyncCore:
             new_src1 = join(src_dir1, obj)
             new_src2 = join(src_dir2, obj)
             sync_dir = self.find_dir_in_sync_file(sync_file_state, obj)
-            if isdir(join(src_dir1, obj)):
+            if os.path.isdir(join(src_dir1, obj)):
 
                 if obj in struct1_copy:
                     if sync_dir is not None:
@@ -264,7 +264,7 @@ class SyncCore:
                     del sync_file_state[sync_dir]
                     self.add_all_as_diff(new_src1, new_src2)
             else:
-                if isdir(join(src_dir2, obj)):
+                if os.path.isdir(join(src_dir2, obj)):
                     if sync_dir is not None:
                         del sync_file_state[sync_dir]
                     self.add_all_as_diff(new_src2, new_src1)
@@ -296,7 +296,7 @@ class SyncCore:
         # make_diff_t.start()
 
     def make_diff_thread(self):
-        if not exists(join(self.src_dir1, self.SYNC_STRUCT_FILE)):
+        if not os.path.exists(join(self.src_dir1, self.SYNC_STRUCT_FILE)):
             with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), "w") as outfile:
                 json.dump({}, outfile)
         with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), "r") as infile:
@@ -335,7 +335,7 @@ class SyncCore:
         if is_delete:
             del place[s]
         else:
-            place[s] = md5(src1)
+            place[s] = Hash.md5(src1)
 
         with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), "w") as outfile:
             json.dump(self.sync_file, outfile)
@@ -343,7 +343,7 @@ class SyncCore:
     def merge_create_file(self, diff: SyncFile):
         src = diff.src1
         dst = diff.src2
-        if isdir(src):
+        if os.path.isdir(src):
             shutil.copytree(src, dst)
         else:
 
@@ -353,9 +353,9 @@ class SyncCore:
         self.diff_list.remove(diff)
 
     def merge_delete_file(self, diff: SyncFile):
-        if not exists(diff.src2):
+        if not os.path.exists(diff.src2):
             return
-        if isdir(diff.src2):
+        if os.path.isdir(diff.src2):
             shutil.rmtree(diff.src2)
         else:
             os.remove(diff.src2)
@@ -388,17 +388,17 @@ class SyncCore:
     def resolve_conflict(self, diff, new_content):
 
         if new_content.is_deleted:
-            if exists(diff.src1):
+            if os.path.exists(diff.src1):
                 os.remove(diff.src1)
-            if exists(diff.src2):
+            if os.path.exists(diff.src2):
                 os.remove(diff.src2)
         elif new_content.is_binary:
             if new_content.path != diff.src1:
-                if exists(diff.src1):
+                if os.path.exists(diff.src1):
                     os.remove(diff.src1)
                 copyfile(new_content.path, diff.src1)
             if new_content.path != diff.src2:
-                if exists(diff.src2):
+                if os.path.exists(diff.src2):
                     os.remove(diff.src2)
                 copyfile(new_content.path, diff.src2)
         else:

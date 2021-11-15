@@ -1,299 +1,209 @@
-import filecmp
+import json
 import os
-import shutil
+import unittest
+from unittest.mock import mock_open, Mock, MagicMock, patch
+from units_tests.directory_simulator.directory_simulator import DirectorySimulator
+from utilities.sync_core_libs.diff_type import DiffType
+from utilities.sync_core_libs.status_sync_file import StatusSyncFile
+from utilities.sync_core_libs.sync_core import SyncCore
 
-from utilities.conflict import Conflict
-from utilities.conflict_resolver.conflict_resolver_file import ConflictResolverFile
-from utilities.sync_core import SyncCore
-
-TEST_DIR = "../test_data"
-TEST_DIR_A = os.path.join(TEST_DIR, "a")
-TEST_DIR_B = os.path.join(TEST_DIR, "b")
-
-
-def clean():
-    for filename in os.listdir(TEST_DIR):
-        file_path = os.path.join(TEST_DIR, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print('Failed to delete %s. Reason: %s' % (file_path, e))
-    os.mkdir(TEST_DIR_A)
-    os.mkdir(TEST_DIR_B)
+from utilities.hash import Hash
 
 
-def are_dir_trees_equal(dir1, dir2):
-    dirs_cmp = filecmp.dircmp(dir1, dir2)
-    left_only = dirs_cmp.left_only
-    if ".syncstruct" in left_only:
-        left_only.remove(".syncstruct")
-    right_only = dirs_cmp.right_only
-    if ".syncstruct" in right_only:
-        right_only.remove(".syncstruct")
-    if len(left_only) > 0 or len(right_only) > 0 or \
-            len(dirs_cmp.funny_files) > 0:
-        return False
-    (_, mismatch, errors) = filecmp.cmpfiles(
-        dir1, dir2, dirs_cmp.common_files, shallow=False)
-    if len(mismatch) > 0 or len(errors) > 0:
-        return False
-    for common_dir in dirs_cmp.common_dirs:
-        new_dir1 = os.path.join(dir1, common_dir)
-        new_dir2 = os.path.join(dir2, common_dir)
-        if not are_dir_trees_equal(new_dir1, new_dir2):
-            return False
-    return True
+@patch("utilities.hash.Hash.md5")
+class SyncCoreGenerateStructureTest(unittest.TestCase):
 
+    def setUp(self):
+        self.directory_simulator = DirectorySimulator()
+        self.directory_simulator.directory_structure = {
+            "C:": {
+                "a": {
+                    "b": {
+                        "c.txt": "test1",
+                        "b.txt": "zaq1"
+                    },
+                    "d.py": "python file"
+                },
+                "b": {
+                    "b": {
+                        "c.txt": "test1",
+                        "b.txt": "zaq1"
+                    },
+                    "d.py": "python file"
+                }
+            }
 
-def create_struct(struct, dir=None):
-    if dir is None:
-        dir = TEST_DIR
-    for key in list(struct.keys()):
-        obj = struct[key]
-        src = os.path.join(dir, key)
-        if type(obj) is str:
-            create_file(src, obj)
-        else:
-            os.mkdir(src)
-            create_struct(obj, src)
-
-
-def copy_a2b():
-    clean()
-    create_struct({
-        "a": {
+        }
+        self.sync_file = {
             "b": {
-                "c.json": "zaq1"
-            }
-        }
-
-    }, TEST_DIR_A)
-    sync_core = SyncCore(TEST_DIR_A, TEST_DIR_B)
-    sync_core.sync_dir()
-    assert are_dir_trees_equal(TEST_DIR_A, TEST_DIR_B) is True
-
-
-def create_file(src, content):
-    with open(src, "w") as f:
-        f.write(content)
-
-
-def copy_b2a():
-    clean()
-    create_struct({
-        "a": {
-            "b": {
-                "c.json": "zaq1"
-            }
-        }
-
-    }, TEST_DIR_B)
-    sync_core = SyncCore(TEST_DIR_A, TEST_DIR_B)
-    sync_core.sync_dir()
-    assert are_dir_trees_equal(TEST_DIR_A, TEST_DIR_B) is True
-
-
-def copy_a_and_b():
-    clean()
-    create_struct({
-        "a": {
-            "b": {
-                "c.json": "zaq1"
-            }
-        }
-
-    }, TEST_DIR_A)
-    create_struct({
-        "c": {
-            "d": {
-                "f.json": "zaq1"
-            }
-        }
-
-    }, TEST_DIR_B)
-    sync_core = SyncCore(TEST_DIR_A, TEST_DIR_B)
-    sync_core.sync_dir()
-    assert are_dir_trees_equal(TEST_DIR_A, TEST_DIR_B) is True
-
-
-def copy_add_add_file():
-    copy_a_and_b()
-    sync_core = SyncCore(TEST_DIR_A, TEST_DIR_B)
-    create_file(os.path.join(TEST_DIR_A, "a", "b", "test"), "zaq1")
-    create_file(os.path.join(TEST_DIR_B, "a", "b", "test"), "mkop")
-    sync = sync_core.sync_dir()
-    assert len(sync) == 1
-    assert type(sync[0]) is Conflict
-    con = ConflictResolverFile(sync[0], sync_core)
-    con.resolve("test")
-    assert are_dir_trees_equal(TEST_DIR_A, TEST_DIR_B) is True
-
-
-def copy_remove_remove_file():
-    copy_a_and_b()
-    sync_core = SyncCore(TEST_DIR_A, TEST_DIR_B)
-    os.remove(os.path.join(TEST_DIR_A, "a", "b", "c.json"))
-    os.remove(os.path.join(TEST_DIR_B, "a", "b", "c.json"))
-    sync = sync_core.sync_dir()
-    assert len(sync) == 0
-    assert are_dir_trees_equal(TEST_DIR_A, TEST_DIR_B) is True
-
-
-def copy_remove_edit_file_remove():
-    copy_a_and_b()
-    sync_core = SyncCore(TEST_DIR_A, TEST_DIR_B)
-    os.remove(os.path.join(TEST_DIR_A, "a", "b", "c.json"))
-    with open(os.path.join(TEST_DIR_B, "a", "b", "c.json"), "w") as f:
-        f.write("new text")
-    sync = sync_core.sync_dir()
-    assert len(sync) == 1
-    assert type(sync[0]) is Conflict
-    con = ConflictResolverFile(sync[0], sync_core)
-    con.resolve("test")
-    assert are_dir_trees_equal(TEST_DIR_A, TEST_DIR_B) is True
-
-
-def copy_remove_edit_file_delete():
-    copy_a_and_b()
-    sync_core = SyncCore(TEST_DIR_A, TEST_DIR_B)
-    os.remove(os.path.join(TEST_DIR_A, "a", "b", "c.json"))
-    with open(os.path.join(TEST_DIR_B, "a", "b", "c.json"), "w") as f:
-        f.write("new text")
-    sync = sync_core.sync_dir()
-    assert len(sync) == 1
-    assert type(sync[0]) is Conflict
-    con = ConflictResolverFile(sync[0], sync_core)
-    con.resolve(None)
-    assert are_dir_trees_equal(TEST_DIR_A, TEST_DIR_B) is True
-
-
-def copy_edit_remove_file_remove():
-    copy_a_and_b()
-    sync_core = SyncCore(TEST_DIR_A, TEST_DIR_B)
-    os.remove(os.path.join(TEST_DIR_B, "a", "b", "c.json"))
-    with open(os.path.join(TEST_DIR_A, "a", "b", "c.json"), "w") as f:
-        f.write("new text")
-    sync = sync_core.sync_dir()
-    assert len(sync) == 1
-    assert type(sync[0]) is Conflict
-    con = ConflictResolverFile(sync[0], sync_core)
-    con.resolve("test")
-    assert are_dir_trees_equal(TEST_DIR_A, TEST_DIR_B) is True
-
-
-def copy_edit_remove_file_delete():
-    copy_a_and_b()
-    sync_core = SyncCore(TEST_DIR_A, TEST_DIR_B)
-    os.remove(os.path.join(TEST_DIR_B, "a", "b", "c.json"))
-    with open(os.path.join(TEST_DIR_A, "a", "b", "c.json"), "w") as f:
-        f.write("new text")
-    sync = sync_core.sync_dir()
-    assert len(sync) == 1
-    assert type(sync[0]) is Conflict
-    con = ConflictResolverFile(sync[0], sync_core)
-    con.resolve(None)
-    assert are_dir_trees_equal(TEST_DIR_A, TEST_DIR_B) is True
-
-
-def copy_edit_edit_file():
-    copy_a_and_b()
-    sync_core = SyncCore(TEST_DIR_A, TEST_DIR_B)
-    with open(os.path.join(TEST_DIR_B, "a", "b", "c.json"), "w") as f:
-        f.write("new text2")
-
-    with open(os.path.join(TEST_DIR_A, "a", "b", "c.json"), "w") as f:
-        f.write("new text")
-    sync = sync_core.sync_dir()
-    assert len(sync) == 1
-    assert type(sync[0]) is Conflict
-    con = ConflictResolverFile(sync[0], sync_core)
-    con.resolve(None)
-    assert are_dir_trees_equal(TEST_DIR_A, TEST_DIR_B) is True
-
-
-def copy_add_add_dir_without_conflicts():
-    copy_a_and_b()
-    sync_core = SyncCore(TEST_DIR_A, TEST_DIR_B)
-
-    create_struct({
-        "new_dir": {
-            "dir": {
-                "test.txt": "new world"
+                "b\\c.txt": "5a105e8b9d40e1329780d62ea2265d8a",
+                "b\\b.txt": "62f2596b743b732c244ca5451a334b4f"
             },
-            "file.txt": "hello"
+            "d.py": "7fe39e2e3d0444251fe73cd8af113758"
         }
-    }, os.path.join(TEST_DIR_A, "a", "b"))
-    create_struct({
-        "new_dir": {
-            "dir": {
-                "test2.txt": "new world"
-            },
-            "file2.txt": "hello"
-        }
-    }, os.path.join(TEST_DIR_B, "a", "b"))
-    sync = sync_core.sync_dir()
-    assert len(sync) == 0
-    assert are_dir_trees_equal(TEST_DIR_A, TEST_DIR_B) is True
+        SyncCore.make_diff = Mock()
+        self.sync_core = SyncCore("C:/a", "C:/b")
+        self.sync_core.sync_file = self.sync_file
+        # mocking
+        os.listdir = Mock()
+        os.listdir.side_effect = self.directory_simulator.list_dir
 
+        os.path.isdir = Mock()
+        os.path.isdir.side_effect = self.directory_simulator.is_dir
 
-def copy_add_add_dir_conflicts():
-    copy_a_and_b()
-    sync_core = SyncCore(TEST_DIR_A, TEST_DIR_B)
+        os.path.exists = Mock()
+        os.path.exists.side_effect = self.directory_simulator.exist
 
-    create_struct({
-        "new_dir": {
-            "dir": {
-                "test.txt": "new world"
-            },
-            "file.txt": "hello"
-        }
-    }, os.path.join(TEST_DIR_A, "a", "b"))
-    create_struct({
-        "new_dir": {
-            "dir": {
-                "test.txt": "new world2"
-            },
-            "file2.txt": "hello"
-        }
-    }, os.path.join(TEST_DIR_B, "a", "b"))
-    sync = sync_core.sync_dir()
-    assert len(sync) == 1
-    assert type(sync[0]) is Conflict
-    assert os.path.normpath(sync[0].path1) == \
-           os.path.normpath(os.path.join(TEST_DIR_A, "a", "b",
-                                         "new_dir", "dir", "test.txt"))
-    con = ConflictResolverFile(sync[0], sync_core)
-    con.resolve("zaq1")
-    assert are_dir_trees_equal(TEST_DIR_A, TEST_DIR_B) is True
+    def test_without_difference_directories(self, md5_mock):
+        md5_mock.side_effect = self.directory_simulator.md5
 
+        self.sync_core.generate_structure("C:/a", "C:/b")
+        self.assertEqual(len(self.sync_core.diff_list), 0)
 
-def copy_remove_remove_dir_without_conflicts():
-    copy_a_and_b()
-    sync_core = SyncCore(TEST_DIR_A, TEST_DIR_B)
+    def test_create_file_in_dir_A(self, md5_mock):
+        md5_mock.side_effect = self.directory_simulator.md5
+        self.directory_simulator.create_file("C:/a/b/new_file.txt", "NEW FILE")
 
-    shutil.rmtree(
-        os.path.join(TEST_DIR_A, "a/b"))
-    shutil.rmtree(
-        os.path.join(TEST_DIR_B, "a/b"))
-    sync = sync_core.sync_dir()
-    assert len(sync) == 0
-    assert are_dir_trees_equal(TEST_DIR_A, TEST_DIR_B) is True
+        self.sync_core.generate_structure("C:/a", "C:/b")
 
+        self.assertEqual(len(self.sync_core.diff_list), 1)
+        diff_obj = self.sync_core.diff_list[0]
+        self.assertEqual(diff_obj.type, DiffType.Create)
+        self.assertEqual(os.path.normpath(diff_obj.src1), os.path.normpath("C:/a/b/new_file.txt"))
+        self.assertEqual(os.path.normpath(diff_obj.src2), os.path.normpath("C:/b/b/new_file.txt"))
+        self.assertEqual(diff_obj.status, StatusSyncFile.finalCompare)
 
-if __name__ == "__main__":
-    copy_a2b()
-    copy_b2a()
-    copy_a_and_b()
-    copy_add_add_file()
-    copy_remove_remove_file()
-    copy_remove_edit_file_remove()
-    copy_remove_edit_file_delete()
-    copy_edit_remove_file_remove()
-    copy_edit_remove_file_delete()
-    copy_edit_edit_file()
-    copy_add_add_dir_without_conflicts()
-    copy_add_add_dir_conflicts()
-    copy_remove_remove_dir_without_conflicts()
+    def test_create_file_in_dir_B(self, md5_mock):
+        md5_mock.side_effect = self.directory_simulator.md5
+        self.directory_simulator.create_file("C:/b/b/new_file.txt", "NEW FILE")
+
+        self.sync_core.generate_structure("C:/a", "C:/b")
+
+        self.assertEqual(len(self.sync_core.diff_list), 1)
+        diff_obj = self.sync_core.diff_list[0]
+        self.assertEqual(diff_obj.type, DiffType.Create)
+        self.assertEqual(os.path.normpath(diff_obj.src1), os.path.normpath("C:/b/b/new_file.txt"))
+        self.assertEqual(os.path.normpath(diff_obj.src2), os.path.normpath("C:/a/b/new_file.txt"))
+        self.assertEqual(diff_obj.status, StatusSyncFile.finalCompare)
+
+    def test_create_file_both(self, md5_mock):
+        md5_mock.side_effect = self.directory_simulator.md5
+        self.directory_simulator.create_file("C:/a/b/new_file.txt", "NEW FILE 1")
+        self.directory_simulator.create_file("C:/b/b/new_file.txt", "NEW FILE 2")
+
+        self.sync_core.generate_structure("C:/a", "C:/b")
+
+        self.assertEqual(len(self.sync_core.diff_list), 1)
+        diff_obj = self.sync_core.diff_list[0]
+        self.assertEqual(diff_obj.type, DiffType.AddAddConflict)
+        self.assertEqual(os.path.normpath(diff_obj.src1), os.path.normpath("C:/a/b/new_file.txt"))
+        self.assertEqual(os.path.normpath(diff_obj.src2), os.path.normpath("C:/b/b/new_file.txt"))
+        self.assertEqual(diff_obj.status, StatusSyncFile.finalCompare)
+
+    def test_edit_file_in_dir_a(self, md5_mock):
+        md5_mock.side_effect = self.directory_simulator.md5
+        self.directory_simulator.edit_file("C:/a/d.py", "EDIT FILE")
+
+        self.sync_core.generate_structure("C:/a", "C:/b")
+
+        self.assertEqual(len(self.sync_core.diff_list), 1)
+        diff_obj = self.sync_core.diff_list[0]
+        self.assertEqual(diff_obj.type, DiffType.Edit)
+        self.assertEqual(os.path.normpath(diff_obj.src1), os.path.normpath("C:/a/d.py"))
+        self.assertEqual(os.path.normpath(diff_obj.src2), os.path.normpath("C:/b/d.py"))
+        self.assertEqual(diff_obj.status, StatusSyncFile.finalCompare)
+
+    def test_edit_file_in_dir_b(self, md5_mock):
+        md5_mock.side_effect = self.directory_simulator.md5
+        self.directory_simulator.edit_file("C:/b/d.py", "EDIT FILE")
+
+        self.sync_core.generate_structure("C:/a", "C:/b")
+
+        self.assertEqual(len(self.sync_core.diff_list), 1)
+        diff_obj = self.sync_core.diff_list[0]
+        self.assertEqual(diff_obj.type, DiffType.Edit)
+        self.assertEqual(os.path.normpath(diff_obj.src1), os.path.normpath("C:/b/d.py"))
+        self.assertEqual(os.path.normpath(diff_obj.src2), os.path.normpath("C:/a/d.py"))
+        self.assertEqual(diff_obj.status, StatusSyncFile.finalCompare)
+
+    def test_edit_file_in_both(self, md5_mock):
+        md5_mock.side_effect = self.directory_simulator.md5
+        self.directory_simulator.edit_file("C:/a/d.py", "EDIT FILE 1")
+        self.directory_simulator.edit_file("C:/b/d.py", "EDIT FILE 2")
+
+        self.sync_core.generate_structure("C:/a", "C:/b")
+
+        self.assertEqual(len(self.sync_core.diff_list), 1)
+        diff_obj = self.sync_core.diff_list[0]
+        self.assertEqual(diff_obj.type, DiffType.EditEditConflict)
+        self.assertEqual(os.path.normpath(diff_obj.src1), os.path.normpath("C:/a/d.py"))
+        self.assertEqual(os.path.normpath(diff_obj.src2), os.path.normpath("C:/b/d.py"))
+        self.assertEqual(diff_obj.status, StatusSyncFile.finalCompare)
+
+    def test_delete_file_in_dir_a(self, md5_mock):
+        md5_mock.side_effect = self.directory_simulator.md5
+        self.directory_simulator.delete_file("C:/a/d.py")
+
+        self.sync_core.generate_structure("C:/a", "C:/b")
+
+        self.assertEqual(len(self.sync_core.diff_list), 1)
+        diff_obj = self.sync_core.diff_list[0]
+        self.assertEqual(diff_obj.type, DiffType.Delete)
+        self.assertEqual(os.path.normpath(diff_obj.src1), os.path.normpath("C:/a/d.py"))
+        self.assertEqual(os.path.normpath(diff_obj.src2), os.path.normpath("C:/b/d.py"))
+        self.assertEqual(diff_obj.status, StatusSyncFile.finalCompare)
+
+    def test_delete_file_in_dir_b(self, md5_mock):
+        md5_mock.side_effect = self.directory_simulator.md5
+        self.directory_simulator.delete_file("C:/b/d.py")
+
+        self.sync_core.generate_structure("C:/a", "C:/b")
+
+        self.assertEqual(len(self.sync_core.diff_list), 1)
+        diff_obj = self.sync_core.diff_list[0]
+        self.assertEqual(diff_obj.type, DiffType.Delete)
+        self.assertEqual(os.path.normpath(diff_obj.src1), os.path.normpath("C:/b/d.py"))
+        self.assertEqual(os.path.normpath(diff_obj.src2), os.path.normpath("C:/a/d.py"))
+        self.assertEqual(diff_obj.status, StatusSyncFile.finalCompare)
+
+    def test_delete_file_in_both(self, md5_mock):
+        md5_mock.side_effect = self.directory_simulator.md5
+        self.directory_simulator.delete_file("C:/a/d.py")
+        self.directory_simulator.delete_file("C:/b/d.py")
+
+        self.sync_core.generate_structure("C:/a", "C:/b")
+
+        self.assertEqual(len(self.sync_core.diff_list), 1)
+        diff_obj = self.sync_core.diff_list[0]
+        self.assertEqual(diff_obj.type, DiffType.RemoveRemove)
+        self.assertEqual(os.path.normpath(diff_obj.src1), os.path.normpath("C:/a/d.py"))
+        self.assertEqual(os.path.normpath(diff_obj.src2), os.path.normpath("C:/b/d.py"))
+        self.assertEqual(diff_obj.status, StatusSyncFile.finalCompare)
+
+    def test_delete_file_in_dir_a_and_edit_in_dir_b(self, md5_mock):
+        md5_mock.side_effect = self.directory_simulator.md5
+        self.directory_simulator.delete_file("C:/a/d.py")
+        self.directory_simulator.edit_file("C:/b/d.py", "new value")
+
+        self.sync_core.generate_structure("C:/a", "C:/b")
+
+        self.assertEqual(len(self.sync_core.diff_list), 1)
+        diff_obj = self.sync_core.diff_list[0]
+        self.assertEqual(diff_obj.type, DiffType.RemoveEditConflict)
+        self.assertEqual(os.path.normpath(diff_obj.src1), os.path.normpath("C:/a/d.py"))
+        self.assertEqual(os.path.normpath(diff_obj.src2), os.path.normpath("C:/b/d.py"))
+        self.assertEqual(diff_obj.status, StatusSyncFile.finalCompare)
+
+    def test_delete_file_in_dir_b_and_edit_in_dir_a(self, md5_mock):
+        md5_mock.side_effect = self.directory_simulator.md5
+        self.directory_simulator.edit_file("C:/a/d.py", "new value")
+        self.directory_simulator.delete_file("C:/b/d.py")
+
+        self.sync_core.generate_structure("C:/a", "C:/b")
+
+        self.assertEqual(len(self.sync_core.diff_list), 1)
+        diff_obj = self.sync_core.diff_list[0]
+        self.assertEqual(diff_obj.type, DiffType.RemoveEditConflict)
+        self.assertEqual(os.path.normpath(diff_obj.src1), os.path.normpath("C:/b/d.py"))
+        self.assertEqual(os.path.normpath(diff_obj.src2), os.path.normpath("C:/a/d.py"))
+        self.assertEqual(diff_obj.status, StatusSyncFile.finalCompare)
