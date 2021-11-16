@@ -17,8 +17,6 @@ from utilities.screens import ScreensUtilities
 
 class SyncDirectories(MDApp):
     def build(self):
-
-        # TODO: fix icon
         self.icon = get_icon_path()
         Window.set_icon(self.icon)
 
