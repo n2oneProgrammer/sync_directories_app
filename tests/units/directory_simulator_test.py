@@ -1,6 +1,6 @@
 import unittest
 
-from units_tests.directory_simulator.directory_simulator import DirectorySimulator
+from directory_simulator.directory_simulator import DirectorySimulator
 
 
 class DirectorySimulatorCommonMethodTest(unittest.TestCase):
@@ -54,14 +54,14 @@ class DirectorySimulatorCreateTest(unittest.TestCase):
         self.directory_simulator = DirectorySimulator()
 
     def test_create_file_without_starts_dirs(self):
-        self.directory_simulator.create_file("C:/a/b/c/d.txt", "test")
+        self.directory_simulator.create_file("C:/a/b/c/d.txt", "tests")
 
         result = {
             "C:": {
                 "a": {
                     "b": {
                         "c": {
-                            "d.txt": "test"
+                            "d.txt": "tests"
                         }
                     }
                 }
@@ -76,24 +76,24 @@ class DirectorySimulatorCreateTest(unittest.TestCase):
                     "b": {
                     },
                     "c": {
-                        "test.txt": "test1"
+                        "tests.txt": "test1"
                     }
                 }
             }
         }
 
-        self.directory_simulator.create_file("C:/a/b/c/d.txt", "test")
+        self.directory_simulator.create_file("C:/a/b/c/d.txt", "tests")
 
         result = {
             "C:": {
                 "a": {
                     "b": {
                         "c": {
-                            "d.txt": "test"
+                            "d.txt": "tests"
                         }
                     },
                     "c": {
-                        "test.txt": "test1"
+                        "tests.txt": "test1"
                     }
                 }
             }
@@ -123,7 +123,7 @@ class DirectorySimulatorCreateTest(unittest.TestCase):
                     "b": {
                     },
                     "c": {
-                        "test.txt": "test1"
+                        "tests.txt": "test1"
                     }
                 }
             }
@@ -140,7 +140,7 @@ class DirectorySimulatorCreateTest(unittest.TestCase):
                         }
                     },
                     "c": {
-                        "test.txt": "test1"
+                        "tests.txt": "test1"
                     }
                 }
             }
@@ -154,13 +154,13 @@ class DirectorySimulatorCreateTest(unittest.TestCase):
                     "b": {
                     },
                     "c": {
-                        "test.txt": "test1"
+                        "tests.txt": "test1"
                     }
                 }
             }
         }
 
-        self.directory_simulator.edit_file("C:/a/c/test.txt", "new value")
+        self.directory_simulator.edit_file("C:/a/c/tests.txt", "new value")
 
         result = {
             "C:": {
@@ -168,7 +168,7 @@ class DirectorySimulatorCreateTest(unittest.TestCase):
                     "b": {
                     },
                     "c": {
-                        "test.txt": "new value"
+                        "tests.txt": "new value"
                     }
                 }
             }
@@ -182,13 +182,13 @@ class DirectorySimulatorCreateTest(unittest.TestCase):
                     "b": {
                     },
                     "c": {
-                        "test.txt": "test1"
+                        "tests.txt": "test1"
                     }
                 }
             }
         }
 
-        self.directory_simulator.delete_file("C:/a/c/test.txt")
+        self.directory_simulator.delete_file("C:/a/c/tests.txt")
 
         result = {
             "C:": {
@@ -212,10 +212,10 @@ class DirectorySimulatorListTest(unittest.TestCase):
                 "a": {
                     "b": {
                         "c": {
-                            "d.txt": "test"
+                            "d.txt": "tests"
                         },
                         "d": {
-                            "d.txt": "test"
+                            "d.txt": "tests"
                         }
                     }
                 }

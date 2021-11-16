@@ -2,7 +2,7 @@ import json
 import os
 import unittest
 from unittest.mock import mock_open, Mock, MagicMock, patch
-from units_tests.directory_simulator.directory_simulator import DirectorySimulator
+from directory_simulator.directory_simulator import DirectorySimulator
 from utilities.sync_core_libs.diff_type import DiffType
 from utilities.sync_core_libs.status_sync_file import StatusSyncFile
 from utilities.sync_core_libs.sync_core import SyncCore
