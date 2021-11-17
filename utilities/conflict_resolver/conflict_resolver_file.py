@@ -51,6 +51,11 @@ class ConflictResolverFile:
             found_line = new_content.text.find(BETWEEN_DIFF)
         return found_line
 
+    def have_diff(self):
+        c1 = self.get_content_path1()
+        c2 = self.get_content_path2()
+        return c1.is_binary or c2.is_binary or c1.is_deleted or c2.is_deleted
+
     def get_diff(self):
         is_new_conflict = ""
         last = ""

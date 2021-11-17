@@ -23,20 +23,35 @@ class SyncScreen(Screen):
 
     def delete_dialog(self):
         if not self.dialog:
-            self.dialog = MDDialog(
-                text="Are you sure you want to delete it?",
-                buttons=[
-                    MDFlatButton(
-                        text="Cancel", on_press=lambda x: self.dialog.dismiss()
-                    ),
-                    MDRaisedButton(
-                        text="Delete",
-                        md_bg_color=(1, 0, 0, 1),
-                        on_press=lambda x: self.delete(),
-                    ),
-                ],
-            )
+            if self.sync.in_sync:
+                self.dialog = MDDialog(
+                    text="You cannot delete it while it's syncing.",
+                    buttons=[
+                        MDFlatButton(
+                            text="Ok", on_press=lambda x: self.dialog.dismiss()
+                        ),
+                    ],
+                )
+            else:
+                self.dialog = MDDialog(
+                    text="Are you sure you want to delete it?",
+                    buttons=[
+                        MDFlatButton(
+                            text="Cancel", on_press=lambda x: self.dialog.dismiss()
+                        ),
+                        MDRaisedButton(
+                            text="Delete",
+                            md_bg_color=(1, 0, 0, 1),
+                            on_press=lambda x: self.delete(),
+                        ),
+                    ],
+                )
         self.dialog.open()
+        self.dialog.on_dismiss = self.dismiss_dialog
+
+    def dismiss_dialog(self):
+        self.dialog = None
+        return False
 
     def delete(self):
         if self.dialog:
