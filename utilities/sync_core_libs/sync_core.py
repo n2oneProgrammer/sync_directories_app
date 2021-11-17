@@ -10,6 +10,7 @@ from shutil import copyfile
 from deepdiff import DeepDiff
 from utilities.conflict import Conflict
 from utilities.hash import Hash
+from utilities.settings import Settings
 from utilities.sync_core_libs.diff_type import DiffType
 from utilities.sync_core_libs.status_sync_file import StatusSyncFile
 
@@ -48,6 +49,10 @@ class SyncCore:
     SYNC_STRUCT_FILE = ".syncstruct"
 
     def __init__(self, src_dir1, src_dir2):
+
+        if Settings().get("sync_struct_file_name") is not None:
+            self.SYNC_STRUCT_FILE = Settings().get("sync_struct_file_name")
+
         self.src_dir1 = src_dir1
         self.src_dir2 = src_dir2
         self.dir1_diff_add = []
