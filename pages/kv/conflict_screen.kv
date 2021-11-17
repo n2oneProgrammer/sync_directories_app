@@ -1,6 +1,7 @@
 <ConflictScreen>:
 	title: title
 	text: text
+	comp_button: compare
 
 	MDBoxLayout:
 		orientation: "vertical"
@@ -45,10 +46,8 @@
 					size_hint: (1,0.15)
 					anchor_x: "center"
 					anchor_y: "center"
+					id: compare
 
-					MDRaisedButton:
-						text: "Compare"
-						on_press: root.compare()
 				BoxLayout:
 					size_hint: (1,0.55)
 

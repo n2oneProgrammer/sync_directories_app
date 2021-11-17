@@ -3,6 +3,7 @@ from kivy.uix.screenmanager import Screen
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
 from utilities.screens import ScreensUtilities
+from utilities.storage import Storage
 
 
 class SyncScreen(Screen):
@@ -41,7 +42,7 @@ class SyncScreen(Screen):
         if self.dialog:
             self.dialog.dismiss()
 
-        self.sync.delete()
+        Storage().remove(self.sync)
         ScreensUtilities().goTo("main", True)
 
     def sync_now(self):
@@ -73,10 +74,8 @@ class SyncScreen(Screen):
             self.sync_button.text = "Sync"
             self.sync_button.disabled = False
 
-
     def set_conflicts_list(self):
-        self.ids.rv.data = []
-
+        self.ids.rv.data=[]
         if self.sync.in_sync:
             self.ids.spiner.active = True
             self.ids.spiner.size = (dp(50), dp(50))

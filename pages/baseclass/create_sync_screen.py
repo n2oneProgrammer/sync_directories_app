@@ -2,8 +2,8 @@ from os import path
 
 import easygui
 from kivy.uix.screenmanager import Screen
-from utilities.folder import Folder
 from utilities.screens import ScreensUtilities
+from utilities.storage import Storage
 
 
 class CreateSyncScreen(Screen):
@@ -67,27 +67,22 @@ class CreateSyncScreen(Screen):
             return True
 
     def save(self):
-
-        v1 = self.v_dir1()
-        v2 = self.v_dir2()
-        v3 = self.v_name()
-
-        if not (v1 and v2 and v3):
+        if not (self.v_dir1() and self.v_dir2() and self.v_name()):
             self.dir1.check_text(1)
             self.dir2.check_text(1)
             self.input_name.check_text(1)
             return
 
-        f = Folder(
+        
+        folder = Storage().create(
             {
                 "name": self.input_name.text,
                 "dir1": self.dir1.text,
                 "dir2": self.dir2.text,
             }
         )
-        f.force_update()
         self.reset()
-        ScreensUtilities().goToSync(f)
+        ScreensUtilities().goToSync(folder)
 
     def reset(self):
         self._reset(self.input_name)
