@@ -5,32 +5,21 @@ from kivy.metrics import dp
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.snackbar import Snackbar
-from utilities.folder import Folder
 from utilities.screens import ScreensUtilities
-from utilities.settings import Settings
+from utilities.storage import Storage
 
 
 class MainScreen(Screen):
     def __init__(self, **kw):
         super().__init__(**kw)
-        self._load_sync_file()
         self.snackbar = None
-
-    def check_for_update(self):
-        if Settings().get("update") == True:
-            self._load_sync_file()
-
-    def _load_sync_file(self):
-        self.syncs = Folder.load_all()
-        Settings().set("update", False)
-        for sync in self.syncs:
+        for sync in Storage().syncs:
             sync.event.new_status += self.set_folder_list
 
     def set_folder_list(self):
-        self.check_for_update()
         self.ids.rv.data = []
         try:
-            for item in self.syncs:
+            for item in Storage().syncs:
                 self.ids.rv.data.append(
                     {
                         "viewclass": "SyncListItem",
@@ -48,7 +37,7 @@ class MainScreen(Screen):
         self.set_folder_list()
 
     def sync_all(self):
-        for sync in self.syncs:
+        for sync in Storage().syncs:
             sync.sync()
 
     def goToSync(self, sync):
@@ -78,9 +67,12 @@ class MainScreen(Screen):
         self.snackbar = None
 
     def del_sync(self, sync):
-        if sync in self.syncs:
+        if sync in Storage().syncs:
             if self.snackbar is not None:
                 self.snackbar.dismiss()
-            sync.delete()
-            self.syncs.remove(sync)
+            Storage().remove(sync)
             self.set_folder_list()
+
+    def on_pre_leave(self, *args):
+        Storage().unsubscribe_new_status(self.set_folder_list)
+

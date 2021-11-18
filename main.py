@@ -4,9 +4,9 @@ from PIL import Image
 from pystray import Icon, Menu, MenuItem
 
 from utilities.device_listener import DeviceListener
-from utilities.folder import Folder
 from utilities.notification import Notification
 from utilities.path import get_icon_path, get_name
+from utilities.storage import Storage
 
 
 class Tray:
@@ -29,8 +29,8 @@ class Tray:
         )
 
     def sync_now(self):
-        list = Folder.load_all()
-        Notification().notify("Sync", f"Syncs {len(list)} folders.")
+        Storage().sync_all()
+        Notification().notify("Sync", f"Syncs {len(Storage().syncs)} folders.")
 
     def run(self):
         DeviceListener(self.sync_now).start()

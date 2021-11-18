@@ -4,24 +4,12 @@ from threading import Thread
 
 from events import Events
 
-from utilities.conflict_resolver.conflict_resolver_file import ConflictResolverFile
 from utilities.notification import Notification
 from utilities.settings import Settings
 from utilities.sync_core_libs.sync_core import SyncCore
 
 
 class Folder:
-    @staticmethod
-    def load_all():
-        syncs = Settings().get("syncs")
-        if syncs is None:
-            Settings().set("syncs", [])
-            syncs = []
-        objs = []
-        for item in syncs:
-            objs.append(Folder(item))
-        return objs
-
     def __init__(self, data):
         self.name = data["name"]
         self.dir1 = data["dir1"]
@@ -32,16 +20,23 @@ class Folder:
         else:
             self.id = data["id"]
 
-        self.event = Events(("new_status", "new_detail"))
+        self.create_event()
 
         self.sync_core = None
         self.conflicts = []
         self.in_sync = False
         self.break_sync = False
         self.detail = ""
-        self.save()
 
+        self.save()
         self.sync()
+
+    def create_event(self):
+        try:
+            del self.event
+        except:
+            pass
+        self.event = Events(("new_status", "new_detail"))
 
     def sync(self):
         Thread(target=self._sync, name=f"Sync {self.name}").start()
@@ -115,17 +110,6 @@ class Folder:
             syncs.append(self.to_dict())
 
         Settings().set("syncs", syncs)
-
-    def delete(self):
-        syncs = Settings().get("syncs")
-        syncs.remove(self.to_dict())
-        Settings().set("syncs", syncs)
-        self.force_update()
-
-    def force_update(self):
-        if Settings().get("update") == True:
-            return
-        Settings().set("update", True)
 
     def to_dict(self):
         return {"id": self.id, "name": self.name, "dir1": self.dir1, "dir2": self.dir2}

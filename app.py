@@ -13,6 +13,7 @@ from pages.baseclass.sync_screen import SyncScreen
 from utilities.loader import load_kv
 from utilities.path import get_icon_path
 from utilities.screens import ScreensUtilities
+from utilities.storage import Storage
 
 
 class SyncDirectories(MDApp):
@@ -61,6 +62,7 @@ class App:
         self.opened = False
 
     def on_close(self):
+        Storage().unsubscribe_all()
         self.opened = False
 
     def run(self):

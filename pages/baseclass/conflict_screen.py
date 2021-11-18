@@ -2,9 +2,11 @@ from kivy.core.window import Window
 from kivy.metrics import dp
 from kivy.uix.screenmanager import Screen
 from kivy.uix.textinput import TextInput
+from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.snackbar import Snackbar
-from utilities.conflict_resolver.conflict_resolver_file import ConflictResolverFile
+from utilities.conflict_resolver.conflict_resolver_file import \
+    ConflictResolverFile
 from utilities.screens import ScreensUtilities
 
 
@@ -14,7 +16,16 @@ class ConflictScreen(Screen):
         self.conflict = conflict
         self.title.title = self.conflict.path1 + " - " + self.conflict.path2
         self.resolver = ConflictResolverFile(self.conflict, self.sync.sync_core)
-        self.content = self.resolver.get_diff()
+
+        self.comp_button.clear_widgets()
+
+        if self.resolver.have_diff():
+            self.content = self.resolver.get_content_path1()
+        else:
+            self.content = self.resolver.get_diff()
+            self.comp_button.add_widget(
+                MDRaisedButton(text="Compare", on_press=self.compare)
+            )
         self.update()
 
     def goBack(self):
@@ -28,7 +39,8 @@ class ConflictScreen(Screen):
         self.content = self.resolver.get_content_path2()
         self.update()
 
-    def compare(self):
+    # this x is beceause of the kive require some argument when you call on press
+    def compare(self, x):
         self.content = self.resolver.get_diff()
         self.update()
 
