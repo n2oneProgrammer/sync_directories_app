@@ -11,6 +11,9 @@ class Storage:
             cls.__instance._init()
         return cls.__instance
 
+    def _init(self):
+        self.syncs = self.load_all()
+
     def load_all(self):
         syncs = Settings().get("syncs")
         if syncs is None:
@@ -36,5 +39,14 @@ class Storage:
         Settings().set("syncs", syncs)
         self.syncs.remove(sync)
 
-    def _init(self):
-        self.syncs = self.load_all()
+    def unsubscribe_new_status(self, func):
+        for sync in self.syncs:
+            sync.event.new_status -= func
+
+    def unsubscribe_new_detail(self, func):
+        for sync in self.syncs:
+            sync.event.new_detail -= func
+
+    def unsubscribe_all(self):
+        for sync in self.syncs:
+            sync.create_event()

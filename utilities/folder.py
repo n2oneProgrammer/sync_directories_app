@@ -20,7 +20,7 @@ class Folder:
         else:
             self.id = data["id"]
 
-        self.event = Events(("new_status", "new_detail"))
+        self.create_event()
 
         self.sync_core = None
         self.conflicts = []
@@ -30,6 +30,13 @@ class Folder:
 
         self.save()
         self.sync()
+
+    def create_event(self):
+        try:
+            del self.event
+        except:
+            pass
+        self.event = Events(("new_status", "new_detail"))
 
     def sync(self):
         Thread(target=self._sync, name=f"Sync {self.name}").start()

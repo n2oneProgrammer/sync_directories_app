@@ -16,7 +16,6 @@ class MainScreen(Screen):
         for sync in Storage().syncs:
             sync.event.new_status += self.set_folder_list
 
-
     def set_folder_list(self):
         self.ids.rv.data = []
         try:
@@ -73,3 +72,7 @@ class MainScreen(Screen):
                 self.snackbar.dismiss()
             Storage().remove(sync)
             self.set_folder_list()
+
+    def on_pre_leave(self, *args):
+        Storage().unsubscribe_new_status(self.set_folder_list)
+

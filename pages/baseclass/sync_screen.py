@@ -109,3 +109,7 @@ class SyncScreen(Screen):
                         ),
                     }
                 )
+
+    def on_pre_leave(self, *args):
+        Storage().unsubscribe_new_status(self.set_conflicts_list)
+        Storage().unsubscribe_new_detail(self.detail)
