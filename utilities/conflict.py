@@ -8,6 +8,3 @@ class Conflict:
         self.path1 = normpath(path1)
         self.path2 = normpath(path2)
         self.type = type
-
-    def resolve(self):
-        pass

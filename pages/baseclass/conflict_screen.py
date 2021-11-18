@@ -24,7 +24,7 @@ class ConflictScreen(Screen):
         else:
             self.content = self.resolver.get_diff()
             self.comp_button.add_widget(
-                MDRaisedButton(text="Compare", on_press=self.compare)
+                MDRaisedButton(text="Compare", on_press=lambda x: self.compare())
             )
         self.update()
 
@@ -39,8 +39,7 @@ class ConflictScreen(Screen):
         self.content = self.resolver.get_content_path2()
         self.update()
 
-    # this x is beceause of the kive require some argument when you call on press
-    def compare(self, x):
+    def compare(self):
         self.content = self.resolver.get_diff()
         self.update()
 

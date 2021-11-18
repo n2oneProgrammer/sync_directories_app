@@ -4,6 +4,7 @@ from threading import Thread
 
 from events import Events
 
+from utilities.conflict_resolver.conflict_resolver_file import ConflictResolverFile
 from utilities.notification import Notification
 from utilities.settings import Settings
 from utilities.sync_core_libs.sync_core import SyncCore
@@ -96,6 +97,20 @@ class Folder:
 
     def resolve(self, confilct):
         self.conflicts.remove(confilct)
+
+    def resolve_all(self, which):
+        for conflict in self.conflicts:
+            resolver = ConflictResolverFile(conflict, self.sync_core)
+            if which == "1":
+                content = resolver.get_content_path1()
+            else:
+                content = resolver.get_content_path2()
+            content.text = content.get_content()
+            resolver.resolve(content)
+
+        self.conflicts = []
+        self.event.new_status()
+        self.event.new_detail()
 
     def save(self):
         syncs = Settings().get("syncs")
