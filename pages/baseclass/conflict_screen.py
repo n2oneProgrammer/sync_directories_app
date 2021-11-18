@@ -39,6 +39,7 @@ class ConflictScreen(Screen):
         self.content = self.resolver.get_content_path2()
         self.update()
 
+    # this x is beceause of the kive require some argument when you call on press
     def compare(self, x):
         self.content = self.resolver.get_diff()
         self.update()
