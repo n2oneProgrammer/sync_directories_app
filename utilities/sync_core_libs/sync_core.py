@@ -212,10 +212,11 @@ class SyncCore:
             if basename(obj) == self.SYNC_STRUCT_FILE:
                 continue
 
-            if IgnoreFile().is_detect(src_dir1, obj):
-                continue
             new_src1 = join(src_dir1, obj)
             new_src2 = join(src_dir2, obj)
+
+            if IgnoreFile(new_src1).is_detect(relpath(new_src1, self.src_dir1)):
+                continue
             sync_dir = self.find_dir_in_sync_file(sync_file_state, obj)
             if os.path.isdir(join(src_dir1, obj)):
 
