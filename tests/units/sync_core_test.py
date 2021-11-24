@@ -3,7 +3,9 @@ import os
 import unittest
 from unittest.mock import mock_open, Mock, MagicMock, patch
 from directory_simulator.directory_simulator import DirectorySimulator
+from utilities.settings import Settings
 from utilities.sync_core_libs.diff_type import DiffType
+from utilities.sync_core_libs.ignore_file import IgnoreFile
 from utilities.sync_core_libs.status_sync_file import StatusSyncFile
 from utilities.sync_core_libs.sync_core import SyncCore
 
@@ -53,6 +55,10 @@ class SyncCoreGenerateStructureTest(unittest.TestCase):
 
         os.path.exists = Mock()
         os.path.exists.side_effect = self.directory_simulator.exist
+
+        IgnoreFile.load_file = Mock()
+        Settings.get = Mock(return_value=None)
+        Settings._init = Mock()
 
     def test_without_difference_directories(self, md5_mock):
         md5_mock.side_effect = self.directory_simulator.md5
