@@ -7,7 +7,7 @@ from utilities.settings import Settings
 class IgnoreFile:
 
     def __init__(self, src_dir):
-        self.ignore_file_name = Settings().get("Ignore_file_name")
+        self.ignore_file_name = Settings().get("ignore_file_name")
         if self.ignore_file_name is None:
             self.ignore_file_name = ".ignore_sync"
         self.ignore_file = [self.ignore_file_name]
