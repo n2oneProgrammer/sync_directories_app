@@ -1,4 +1,3 @@
-import json
 import webbrowser
 
 from components.baseclass.settings_range_dialog import SettingsRangeDialog
