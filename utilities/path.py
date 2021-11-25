@@ -20,6 +20,11 @@ def convert_path(path):
         return os.path.join(sys._MEIPASS) + "\\" + path
     return path
 
+def get_self_path():
+    if getattr(sys, "frozen", False):
+        return sys.executable
+    else:
+        return os.path.abspath(__file__)
 
 def get_icon_path():
     return convert_path("assets/icon/icon.png")
