@@ -6,6 +6,20 @@
 			title: "Settings"
 			left_action_items: [["arrow-left", lambda x: app.goTo('main',True)]]
 
-		MDLabel:
-			text: "Content"
-			halign: "center"
+		BoxLayout:		
+        	padding: dp(20)
+			orientation: "vertical"
+
+			RecycleView:
+				size_hint: (1,0.6)
+				id: rv
+				key_viewclass: 'viewclass'
+				key_size: 'height'
+
+				RecycleBoxLayout:
+					padding: dp(5)
+					default_size: None, dp(60)
+					default_size_hint: 1, None
+					size_hint_y: None
+					height: self.minimum_height
+					orientation: 'vertical'

@@ -1,0 +1,33 @@
+[
+    {
+        "type": "string",
+        "title": "Syncfile name",
+        "description": "Name of file in which will be stored structure of synced folders.",
+        "default": ".sync",
+        "value": "sync_struct_file_name",
+        "converter": "filename"
+    },
+    {
+        "type": "string",
+        "title": "Ignore file name",
+        "description": "Name of file in which will be definated which files wont be synced.",
+        "default": ".syncignore",
+        "value": "ignore_file_name",
+        "converter": "filename"
+    },
+    {
+        "type": "range",
+        "min": 1,
+        "max": 64,
+        "default": 5,
+        "title": "Hashing limit",
+        "description": "Amount of MB that will be verifed when syncing file.",
+        "value": "limit_hashing_file_MB"
+    },
+    {
+        "type": "url",
+        "title": "About",
+        "description": "https://github.com/n2oneProgrammer/sync_directories_app",
+        "url": "https://github.com/n2oneProgrammer/sync_directories_app"
+    }
+]
