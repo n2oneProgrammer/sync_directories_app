@@ -2,6 +2,9 @@ import json
 import os
 import unittest
 from unittest.mock import mock_open, Mock, MagicMock, patch
+
+import win32api
+
 from directory_simulator.directory_simulator import DirectorySimulator
 from utilities.settings import Settings
 from utilities.sync_core_libs.diff_type import DiffType
@@ -55,6 +58,8 @@ class SyncCoreGenerateStructureTest(unittest.TestCase):
 
         os.path.exists = Mock()
         os.path.exists.side_effect = self.directory_simulator.exist
+
+        win32api.GetFileAttributes = Mock(return_value=0)
 
         IgnoreFile.load_file = Mock()
         Settings.get = Mock(return_value=None)

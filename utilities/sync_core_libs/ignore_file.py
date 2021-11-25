@@ -21,7 +21,8 @@ class IgnoreFile:
         return False
 
     def load_file(self):
-        with open(self.ignore_file_name, "r") as file:
-            data = file.readlines()
-            for line in data:
-                self.ignore_file.append(line.strip())
+        if os.path.exists(self.ignore_file_name):
+            with open(self.ignore_file_name, "r") as file:
+                data = file.readlines()
+                for line in data:
+                    self.ignore_file.append(line.strip())
