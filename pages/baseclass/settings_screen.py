@@ -8,6 +8,7 @@ from components.baseclass.settings_string_dialog import SettingsStringDialog
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
+from utilities.autostart import Autostart
 from utilities.path import slugify
 from utilities.settings import Settings
 
@@ -73,6 +74,8 @@ class SettingsScreen(Screen):
 
     def dialog_save(self, item, field):
         v = None
+        key = item["value"]
+
         if item["type"] == "string":
             v = field.text
         elif item["type"] == "range":
@@ -83,10 +86,12 @@ class SettingsScreen(Screen):
         if item.get("converter") is not None:
             if item["converter"] == "filename":
                 v = slugify(v, allow_unicode=True)
+                Settings().set(key, v)
             elif item["converter"] == "autostart":
-                # TODO: do stuf
-                pass
-
-        key = item["value"]
-        Settings().set(key, v)
+                Settings().set(key, v)
+                Autostart().update()
+            else:
+                Settings().set(key, v)
+        else:
+            Settings().set(key, v)
         self.dialog.dismiss()

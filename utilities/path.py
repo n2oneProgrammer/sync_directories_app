@@ -24,15 +24,16 @@ def get_self_path():
     if getattr(sys, "frozen", False):
         return sys.executable
     else:
-        return os.path.abspath(__file__)
+        return None
 
 def get_icon_path():
     return convert_path("assets/icon/icon.png")
 
-
 def get_name():
     return "SyncDirectories"
 
+def get_package_name():
+    return "com.jaanonim.syncdirectories"
 
 def get_storage():
     dir = user_data_dir(get_name(), "jaanonim")
