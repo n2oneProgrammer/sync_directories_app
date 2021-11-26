@@ -1,5 +1,13 @@
 [
     {
+        "type": "bool",
+        "title": "Autostart",
+        "description": "Run this app on system startup.",
+        "default": true,
+        "value": "autostart",
+        "converter": "autostart"
+    },
+    {
         "type": "string",
         "title": "Syncfile name",
         "description": "Name of file in which will be stored structure of synced folders.",

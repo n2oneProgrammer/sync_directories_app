@@ -1,3 +1,5 @@
+from components.baseclass.sync_list_item import \
+    SyncListItem  # it's in use via kivy
 from kivy.metrics import dp
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.button import MDFlatButton, MDRaisedButton

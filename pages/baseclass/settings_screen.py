@@ -1,10 +1,14 @@
 import webbrowser
 
+from components.baseclass.settings_bool_dialog import SettingsBoolDialog
+from components.baseclass.settings_list_item import \
+    SettingsListItem  # it's in use via kivy
 from components.baseclass.settings_range_dialog import SettingsRangeDialog
 from components.baseclass.settings_string_dialog import SettingsStringDialog
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
+from utilities.autostart import Autostart
 from utilities.path import slugify
 from utilities.settings import Settings
 
@@ -19,7 +23,7 @@ class SettingsScreen(Screen):
         for item in Settings().user_settings:
             self.ids.rv.data.append(
                 {
-                    "viewclass": "TwoLineListItem",
+                    "viewclass": "SettingsListItem",
                     "text": item["title"],
                     "secondary_text": item["description"],
                     "on_release": lambda x=item: self.open_setting(x),
@@ -42,6 +46,8 @@ class SettingsScreen(Screen):
             )
         elif item["type"] == "range":
             content = SettingsRangeDialog(value=Settings().get(item["value"]))
+        elif item["type"] == "bool":
+            content = SettingsBoolDialog(value=Settings().get(item["value"]))
 
         return MDDialog(
             title=item["title"],
@@ -68,15 +74,24 @@ class SettingsScreen(Screen):
 
     def dialog_save(self, item, field):
         v = None
+        key = item["value"]
+
         if item["type"] == "string":
             v = field.text
         elif item["type"] == "range":
             v = field.value
+        elif item["type"] == "bool":
+            v = field.active
 
         if item.get("converter") is not None:
             if item["converter"] == "filename":
                 v = slugify(v, allow_unicode=True)
-
-        key = item["value"]
-        Settings().set(key, v)
+                Settings().set(key, v)
+            elif item["converter"] == "autostart":
+                Settings().set(key, v)
+                Autostart().update()
+            else:
+                Settings().set(key, v)
+        else:
+            Settings().set(key, v)
         self.dialog.dismiss()
