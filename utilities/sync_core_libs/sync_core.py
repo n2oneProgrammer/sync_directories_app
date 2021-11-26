@@ -3,9 +3,11 @@ import os
 import shutil
 from copy import deepcopy
 # import threading
+import win32con
+import win32api
 from os.path import basename, dirname, join, normpath, relpath
 from pathlib import Path
-from shutil import copyfile
+from shutil import copy2
 
 from deepdiff import DeepDiff
 from utilities.conflict import Conflict
@@ -100,6 +102,11 @@ class SyncCore:
             if self.ignore_file.is_detect(relpath(new_src1, self.src_dir1)):
                 continue
             if os.path.isdir(join(src_dir1, obj)):
+                o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
+                # with self.diff_list_lock:
+                self.diff_list.append(o)
+
+                self.add_dir_if_diff(new_src1, new_src2, o)
                 self.add_all_as_diff(new_src1, new_src2)
             else:
                 o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
@@ -201,6 +208,22 @@ class SyncCore:
                         DiffType.EditEditConflict, diff_list_object
                     )
 
+    def add_dir_if_diff(self, src1, src2, diff_list_object):
+        is_hidden1 = False
+        is_hidden2 = False
+        if os.path.exists(src1):
+            status = win32api.GetFileAttributes(src1)
+            is_hidden1 = not status & win32con.FILE_ATTRIBUTE_HIDDEN == 0
+        if os.path.exists(src2):
+            status2 = win32api.GetFileAttributes(src2)
+            is_hidden2 = not status2 & win32con.FILE_ATTRIBUTE_HIDDEN == 0
+        if is_hidden1:
+            self.change_status_diff_list(DiffType.Create, diff_list_object)
+        if is_hidden2:
+            self.change_status_diff_list(DiffType.Create, diff_list_object, True)
+        else:
+            self.diff_list.remove(diff_list_object)
+
     def find_dir_in_sync_file(self, sync_file, dir_name):
         for key in sync_file.keys():
             if normpath(key).split("\\")[-1] == dir_name:
@@ -225,12 +248,16 @@ class SyncCore:
                 continue
             sync_dir = self.find_dir_in_sync_file(sync_file_state, obj)
             if os.path.isdir(join(src_dir1, obj)):
-
                 if obj in struct2:
                     if sync_dir is not None:
                         sub_dir = sync_file_state[sync_dir]
                     else:
                         sub_dir = {}
+                    o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
+                    # with self.diff_list_lock:
+                    self.diff_list.append(o)
+
+                    self.add_dir_if_diff(new_src1, new_src2, o)
                     self.generate_structure(
                         new_src1, new_src2, sub_dir
                     )
@@ -239,6 +266,11 @@ class SyncCore:
                 else:
                     if sync_dir is not None:
                         del sync_file_state[sync_dir]
+                    o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
+                    # with self.diff_list_lock:
+                    self.diff_list.append(o)
+
+                    self.add_dir_if_diff(new_src1, new_src2, o)
                     self.add_all_as_diff(new_src1, new_src2)
             else:
                 o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
@@ -268,6 +300,12 @@ class SyncCore:
                         sub_dir = sync_file_state[sync_dir]
                     else:
                         sub_dir = {}
+
+                    o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
+                    # with self.diff_list_lock:
+                    self.diff_list.append(o)
+
+                    self.add_dir_if_diff(new_src1, new_src2, o)
                     self.generate_structure(
                         new_src1, new_src2, sub_dir
                     )
@@ -278,6 +316,11 @@ class SyncCore:
                 if os.path.isdir(join(src_dir2, obj)):
                     if sync_dir is not None:
                         del sync_file_state[sync_dir]
+                    o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
+                    # with self.diff_list_lock:
+                    self.diff_list.append(o)
+
+                    self.add_dir_if_diff(new_src1, new_src2, o)
                     self.add_all_as_diff(new_src2, new_src1)
                 else:
                     o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
@@ -346,7 +389,8 @@ class SyncCore:
         if is_delete:
             del place[s]
         else:
-            place[s] = Hash.md5(src1)
+            if not os.path.isdir(src1):
+                place[s] = Hash.md5(src1)
 
         with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), "w") as outfile:
             json.dump(self.sync_file, outfile)
@@ -355,11 +399,12 @@ class SyncCore:
         src = diff.src1
         dst = diff.src2
         if os.path.isdir(src):
-            shutil.copytree(src, dst)
+            Path(dst).mkdir(parents=True, exist_ok=True)
+            win32api.SetFileAttributes(dst, win32con.FILE_ATTRIBUTE_HIDDEN)
         else:
-
             Path(dirname(dst)).mkdir(parents=True, exist_ok=True)
-            copyfile(src, dst)
+            copy2(src, dst)
+            win32api.SetFileAttributes(dst, win32api.GetFileAttributes(src))
         self.update_sync_file(diff, False)
         self.diff_list.remove(diff)
 
@@ -379,7 +424,7 @@ class SyncCore:
         self.diff_list.remove(diff)
 
     def merge_edit_file(self, diff: SyncFile):
-        copyfile(diff.src1, diff.src2)
+        copy2(diff.src1, diff.src2)
         self.update_sync_file(diff, False)
         self.diff_list.remove(diff)
 
@@ -407,11 +452,11 @@ class SyncCore:
             if new_content.path != diff.src1:
                 if os.path.exists(diff.src1):
                     os.remove(diff.src1)
-                copyfile(new_content.path, diff.src1)
+                copy2(new_content.path, diff.src1)
             if new_content.path != diff.src2:
                 if os.path.exists(diff.src2):
                     os.remove(diff.src2)
-                copyfile(new_content.path, diff.src2)
+                copy2(new_content.path, diff.src2)
         else:
             with open(diff.src1, "w") as file:
                 file.write(new_content.text)
