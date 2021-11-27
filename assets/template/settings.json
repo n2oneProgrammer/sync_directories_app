@@ -30,7 +30,8 @@
         "default": 5,
         "title": "Hashing limit",
         "description": "Amount of MB that will be verifed when syncing file.",
-        "value": "limit_hashing_file_MB"
+        "value": "limit_hashing_file_MB",
+        "converter": "int"
     },
     {
         "type": "url",
