@@ -32,7 +32,9 @@ class Tray:
 
     def sync_now(self):
         Storage().sync_all()
-        Notification().notify("Sync", f"Syncs {len(Storage().syncs)} folders.")
+        Notification().notify(
+            "Sync", f"Syncs {Storage().number_of_valid_syncs()} folders."
+        )
 
     def run(self):
         DeviceListener(self.sync_now).start()

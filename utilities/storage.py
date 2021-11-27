@@ -50,3 +50,10 @@ class Storage:
     def unsubscribe_all(self):
         for sync in self.syncs:
             sync.create_event()
+
+    def number_of_valid_syncs(self):
+        i = 0
+        for sync in self.syncs:
+            if sync.valid():
+                i += 1
+        return i
