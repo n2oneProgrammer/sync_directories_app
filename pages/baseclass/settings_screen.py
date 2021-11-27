@@ -45,7 +45,9 @@ class SettingsScreen(Screen):
                 value=Settings().get(item["value"]), hint=item["title"]
             )
         elif item["type"] == "range":
-            content = SettingsRangeDialog(value=Settings().get(item["value"]))
+            content = SettingsRangeDialog(
+                value=Settings().get(item["value"]), min=item["min"], max=item["max"]
+            )
         elif item["type"] == "bool":
             content = SettingsBoolDialog(value=Settings().get(item["value"]))
 
@@ -80,6 +82,7 @@ class SettingsScreen(Screen):
             v = field.text
         elif item["type"] == "range":
             v = field.value
+            
         elif item["type"] == "bool":
             v = field.active
 
@@ -90,6 +93,9 @@ class SettingsScreen(Screen):
             elif item["converter"] == "autostart":
                 Settings().set(key, v)
                 Autostart().update()
+            elif item["converter"] == "int":
+                v = int(v)
+                Settings().set(key, v)
             else:
                 Settings().set(key, v)
         else:
