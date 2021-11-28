@@ -10,11 +10,6 @@ from utilities.storage import Storage
 
 
 class MainScreen(Screen):
-    def __init__(self, **kw):
-        super().__init__(**kw)
-        self.snackbar = None
-        for sync in Storage().syncs:
-            sync.event.new_status += self.set_folder_list
 
     def set_folder_list(self):
         self.ids.rv.data = []
@@ -34,6 +29,8 @@ class MainScreen(Screen):
 
     def on_pre_enter(self, *args):
         self.snackbar = None
+        for sync in Storage().syncs:
+            sync.event.new_status += self.set_folder_list
         self.set_folder_list()
 
     def sync_all(self):

@@ -23,6 +23,28 @@ class SyncScreen(Screen):
         self.set_conflicts_list()
         self.detail()
 
+    def resolve_all_dialog(self):
+        if not self.dialog:
+            self.dialog = MDDialog(
+                text="Files from which folder should be copy?",
+                buttons=[
+                    MDRaisedButton(
+                        text="Directory 1", on_press=lambda _: self.resolve_all(1)
+                    ),
+                    MDRaisedButton(
+                        text="Directory 2", on_press=lambda _: self.resolve_all(2)
+                    ),
+                ],
+            )
+        self.dialog.open()
+        self.dialog.on_dismiss = self.dismiss_dialog
+
+    def resolve_all(self, dir):
+        if self.dialog:
+            self.dialog.dismiss()
+
+        self.sync.resolve_all(dir)
+
     def delete_dialog(self):
         if not self.dialog:
             if self.sync.in_sync:
@@ -30,7 +52,7 @@ class SyncScreen(Screen):
                     text="You cannot delete it while it's syncing.",
                     buttons=[
                         MDFlatButton(
-                            text="Ok", on_press=lambda x: self.dialog.dismiss()
+                            text="Ok", on_press=lambda _: self.dialog.dismiss()
                         ),
                     ],
                 )
@@ -39,12 +61,12 @@ class SyncScreen(Screen):
                     text="Are you sure you want to delete it?",
                     buttons=[
                         MDFlatButton(
-                            text="Cancel", on_press=lambda x: self.dialog.dismiss()
+                            text="Cancel", on_press=lambda _: self.dialog.dismiss()
                         ),
                         MDRaisedButton(
                             text="Delete",
                             md_bg_color=(1, 0, 0, 1),
-                            on_press=lambda x: self.delete(),
+                            on_press=lambda _: self.delete(),
                         ),
                     ],
                 )
@@ -73,6 +95,15 @@ class SyncScreen(Screen):
 
     def detail(self):
         self.log.text = self.sync.detail
+
+        self.resolve_all_button.clear_widgets()
+        if self.sync.conflicts:
+            self.resolve_all_button.add_widget(
+                MDRaisedButton(
+                    text="Resolve all", on_press=lambda _: self.resolve_all_dialog()
+                )
+            )
+
         if self.sync.in_sync:
             if self.sync.detail != "Looking for differences...":
                 if self.sync.break_sync == True:
@@ -92,7 +123,8 @@ class SyncScreen(Screen):
             self.sync_button.disabled = False
 
     def set_conflicts_list(self):
-        self.ids.rv.data=[]
+        self.ids.rv.data = []
+
         if self.sync.in_sync:
             self.ids.spiner.active = True
             self.ids.spiner.size = (dp(50), dp(50))

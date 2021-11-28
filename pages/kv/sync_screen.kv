@@ -3,6 +3,7 @@
 	dir: dir
 	log: log
 	sync_button: sync_button
+	resolve_all_button: resolve_all_button
 
 	MDBoxLayout:
 		orientation: "vertical"
@@ -55,6 +56,9 @@
 						id: sync_button
 						text: "Sync"
 						on_press: root.sync_now()
+					
+					MDBoxLayout:
+						id: resolve_all_button
 
 					MDLabel:
 						size_hint: (1,0.2)
