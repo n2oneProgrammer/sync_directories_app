@@ -27,6 +27,8 @@ class Folder:
         self.sync_core = None
         self.conflicts = []
         self.in_sync = False
+        self.error = False
+        self.resolving = False
         self.break_sync = False
         self.detail = ""
 
@@ -48,17 +50,23 @@ class Folder:
         self.event.new_detail()
 
     def _sync(self):
-        if self.in_sync or not self.valid():
+        if self.in_sync or not self.valid() or self.resolving:
             self.event.new_status()
             return
         self.in_sync = True
+        self.error = False
         self.event.new_status()
 
         print("Syncing:", self.name)
         self.conflicts = []
         self.detail = "Looking for differences..."
         self.event.new_detail()
-        self.sync_core = SyncCore(self.dir1, self.dir2)
+
+        try:
+            self.sync_core = SyncCore(self.dir1, self.dir2)
+        except Exception as e:
+            self._set_error(e)
+            return
 
         for item in self.sync_core.diff_list.copy():
             if self.break_sync:
@@ -78,7 +86,11 @@ class Folder:
                 )
 
                 self.event.new_detail()
-                self.sync_core.merge_with_out_conflict(item)
+                try:
+                    self.sync_core.merge_with_out_conflict(item)
+                except Exception as e:
+                    self._set_error(e)
+                    return
             else:
                 self.detail = "Conflict found."
                 self.event.new_detail()
@@ -96,20 +108,57 @@ class Folder:
         self.event.new_detail()
         print("DONE")
 
+    def _set_error(self, error):
+        print(f"Error: {error}")
+        self.detail = f"Error: {error}"
+        self.error = True
+        self.break_sync = False
+        self.in_sync = False
+        self.event.new_status()
+        self.event.new_detail()
+
     def resolve(self, confilct):
         self.conflicts.remove(confilct)
 
     def resolve_all(self, which):
-        for conflict in self.conflicts:
+        Thread(
+            target=self._resolve_all, name=f"Resolving {self.name}", args=(which,)
+        ).start()
+
+    def _resolve_all(self, which):
+        self.resolving = True
+        self.break_sync = False
+        self.detail = f"Starting resolving..."
+        self.event.new_status()
+        self.event.new_detail()
+
+        for conflict in self.conflicts.copy():
+            if self.break_sync:
+                self.break_sync = False
+                self.resolving = False
+                self.detail = "Resolving stopped."
+                self.event.new_status()
+                self.event.new_detail()
+                return
+
             resolver = ConflictResolverFile(conflict, self.sync_core)
             if which == 1:
                 content = resolver.get_content_path1()
             else:
                 content = resolver.get_content_path2()
             content.text = content.get_content()
-            resolver.resolve(content)
 
-        self.conflicts = []
+            e = resolver.resolve(content)
+            if e is None:
+                self.resolve(conflict)
+            else:
+                self.conflicts[self.conflicts.index(conflict)].set_error(e)
+
+            self.detail = f"Resolving {conflict.path1}"
+            self.event.new_detail()
+
+        self.resolving = False
+        self.detail = "Resolving done."
         self.event.new_status()
         self.event.new_detail()
 
@@ -131,12 +180,16 @@ class Folder:
         return {"id": self.id, "name": self.name, "dir1": self.dir1, "dir2": self.dir2}
 
     def status(self):
-        if self.in_sync:
-            return "sync"
         if not self.valid():
             return "folder-alert"
+        if self.in_sync:
+            return "sync"
+        if self.resolving:
+            return "wrench"
         if len(self.conflicts) > 0:
             return "sync-alert"
+        if self.error:
+            return "alert"
         return "check"
 
     def valid(self):

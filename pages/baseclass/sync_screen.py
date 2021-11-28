@@ -6,6 +6,7 @@ from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
 from utilities.screens import ScreensUtilities
 from utilities.storage import Storage
+from utilities.sync_core_libs.diff_type import DiffType
 
 
 class SyncScreen(Screen):
@@ -90,21 +91,25 @@ class SyncScreen(Screen):
         elif self.sync_button.text == "Stop":
             self.sync.stop()
 
-    def resolve(self, conflict):
-        conflict.resolve()
-
     def detail(self):
         self.log.text = self.sync.detail
 
         self.resolve_all_button.clear_widgets()
-        if self.sync.conflicts:
+        if self.sync.conflicts and not self.sync.resolving and not self.sync.in_sync:
             self.resolve_all_button.add_widget(
                 MDRaisedButton(
                     text="Resolve all", on_press=lambda _: self.resolve_all_dialog()
                 )
             )
 
-        if self.sync.in_sync:
+        if self.sync.resolving:
+            if self.sync.break_sync == True:
+                self.sync_button.text = "Stoping..."
+                self.sync_button.disabled = True
+            else:
+                self.sync_button.text = "Stop"
+                self.sync_button.disabled = False
+        elif self.sync.in_sync:
             if self.sync.detail != "Looking for differences...":
                 if self.sync.break_sync == True:
                     self.sync_button.text = "Stoping..."
@@ -125,7 +130,7 @@ class SyncScreen(Screen):
     def set_conflicts_list(self):
         self.ids.rv.data = []
 
-        if self.sync.in_sync:
+        if self.sync.in_sync or self.sync.resolving:
             self.ids.spiner.active = True
             self.ids.spiner.size = (dp(50), dp(50))
         else:
@@ -138,11 +143,26 @@ class SyncScreen(Screen):
                         "viewclass": "SyncListItem",
                         "icon": item.type.value,
                         "text": f"{item.path1} - {item.path2}",
-                        "on_release": lambda conf=item, sync=self.sync: ScreensUtilities().goToConfilct(
+                        "on_release": lambda conf=item, sync=self.sync: self.open_conflict(
                             sync, conf
                         ),
                     }
                 )
+
+    def open_conflict(self, sync, conflict):
+        if conflict.type == DiffType.Error:
+            if not self.dialog:
+                self.dialog = MDDialog(
+                    title = "Error",
+                    text = f"There is a problem with this conflict so you have to resolve it manually. Sync again when done.\n\nError Details:\n{conflict.error}",
+                    buttons=[
+                        MDFlatButton(text="Ok", on_press=lambda _: self.dialog.dismiss()),
+                    ],
+                )
+            self.dialog.open()
+            self.dialog.on_dismiss = self.dismiss_dialog
+        else:
+            ScreensUtilities().goToConfilct(sync, conflict)
 
     def on_pre_leave(self, *args):
         Storage().unsubscribe_new_status(self.set_conflicts_list)

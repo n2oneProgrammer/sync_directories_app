@@ -2,13 +2,13 @@ import json
 import os
 import shutil
 from copy import deepcopy
-# import threading
-import win32con
-import win32api
 from os.path import basename, dirname, join, normpath, relpath
 from pathlib import Path
 from shutil import copy2
 
+import win32api
+# import threading
+import win32con
 from deepdiff import DeepDiff
 from utilities.conflict import Conflict
 from utilities.hash import Hash
@@ -36,12 +36,14 @@ class SyncFile:
             return f"{os.path.basename(self.src1)} -> {os.path.basename(self.src2)}"
         elif self.type is DiffType.RemoveRemove:
             return None
+        return None
 
     def get_conflict(self):
         if self.type in [
             DiffType.AddAddConflict,
             DiffType.EditEditConflict,
             DiffType.RemoveEditConflict,
+            DiffType.Error,
         ]:
             return Conflict(self.src1, self.src2, self.type)
         return None
