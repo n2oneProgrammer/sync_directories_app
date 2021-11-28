@@ -4,8 +4,7 @@ from threading import Thread
 
 from events import Events
 
-from utilities.conflict_resolver.conflict_resolver_file import \
-    ConflictResolverFile
+from utilities.conflict_resolver.conflict_resolver_file import ConflictResolverFile
 from utilities.notification import Notification
 from utilities.settings import Settings
 from utilities.sync_core_libs.sync_core import SyncCore
@@ -27,6 +26,7 @@ class Folder:
         self.sync_core = None
         self.conflicts = []
         self.in_sync = False
+        self.error = False
         self.break_sync = False
         self.detail = ""
 
@@ -52,13 +52,19 @@ class Folder:
             self.event.new_status()
             return
         self.in_sync = True
+        self.error = False
         self.event.new_status()
 
         print("Syncing:", self.name)
         self.conflicts = []
         self.detail = "Looking for differences..."
         self.event.new_detail()
-        self.sync_core = SyncCore(self.dir1, self.dir2)
+
+        try:
+            self.sync_core = SyncCore(self.dir1, self.dir2)
+        except Exception as e:
+            self._set_error(e)
+            return
 
         for item in self.sync_core.diff_list.copy():
             if self.break_sync:
@@ -78,7 +84,11 @@ class Folder:
                 )
 
                 self.event.new_detail()
-                self.sync_core.merge_with_out_conflict(item)
+                try:
+                    self.sync_core.merge_with_out_conflict(item)
+                except Exception as e:
+                    self._set_error(e)
+                    return
             else:
                 self.detail = "Conflict found."
                 self.event.new_detail()
@@ -95,6 +105,15 @@ class Folder:
         self.event.new_status()
         self.event.new_detail()
         print("DONE")
+
+    def _set_error(self, error):
+        print(f"Error: {error}")
+        self.detail = f"Error: {error}"
+        self.error = True
+        self.break_sync = False
+        self.in_sync = False
+        self.event.new_status()
+        self.event.new_detail()
 
     def resolve(self, confilct):
         self.conflicts.remove(confilct)
@@ -137,6 +156,8 @@ class Folder:
             return "folder-alert"
         if len(self.conflicts) > 0:
             return "sync-alert"
+        if self.error:
+            return "alert"
         return "check"
 
     def valid(self):
