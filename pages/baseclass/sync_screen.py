@@ -27,10 +27,10 @@ class SyncScreen(Screen):
                 text="Files from which folder should be copy?",
                 buttons=[
                     MDRaisedButton(
-                        text="Directory 1", on_press=lambda x: self.resolve_all(1)
+                        text="Directory 1", on_press=lambda _: self.resolve_all(1)
                     ),
                     MDRaisedButton(
-                        text="Directory 2", on_press=lambda x: self.resolve_all(2)
+                        text="Directory 2", on_press=lambda _: self.resolve_all(2)
                     ),
                 ],
             )
@@ -50,7 +50,7 @@ class SyncScreen(Screen):
                     text="You cannot delete it while it's syncing.",
                     buttons=[
                         MDFlatButton(
-                            text="Ok", on_press=lambda x: self.dialog.dismiss()
+                            text="Ok", on_press=lambda _: self.dialog.dismiss()
                         ),
                     ],
                 )
@@ -59,12 +59,12 @@ class SyncScreen(Screen):
                     text="Are you sure you want to delete it?",
                     buttons=[
                         MDFlatButton(
-                            text="Cancel", on_press=lambda x: self.dialog.dismiss()
+                            text="Cancel", on_press=lambda _: self.dialog.dismiss()
                         ),
                         MDRaisedButton(
                             text="Delete",
                             md_bg_color=(1, 0, 0, 1),
-                            on_press=lambda x: self.delete(),
+                            on_press=lambda _: self.delete(),
                         ),
                     ],
                 )
@@ -98,7 +98,7 @@ class SyncScreen(Screen):
         if self.sync.conflicts:
             self.resolve_all_button.add_widget(
                 MDRaisedButton(
-                    text="Resolve all", on_press=lambda x: self.resolve_all_dialog()
+                    text="Resolve all", on_press=lambda _: self.resolve_all_dialog()
                 )
             )
 

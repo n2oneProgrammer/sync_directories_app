@@ -5,8 +5,7 @@ from kivy.uix.textinput import TextInput
 from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.snackbar import Snackbar
-from utilities.conflict_resolver.conflict_resolver_file import \
-    ConflictResolverFile
+from utilities.conflict_resolver.conflict_resolver_file import ConflictResolverFile
 from utilities.screens import ScreensUtilities
 
 
@@ -24,7 +23,7 @@ class ConflictScreen(Screen):
         else:
             self.content = self.resolver.get_diff()
             self.comp_button.add_widget(
-                MDRaisedButton(text="Compare", on_press=lambda x: self.compare())
+                MDRaisedButton(text="Compare", on_press=lambda _: self.compare())
             )
         self.update()
 
