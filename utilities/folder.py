@@ -4,7 +4,8 @@ from threading import Thread
 
 from events import Events
 
-from utilities.conflict_resolver.conflict_resolver_file import ConflictResolverFile
+from utilities.conflict_resolver.conflict_resolver_file import \
+    ConflictResolverFile
 from utilities.notification import Notification
 from utilities.settings import Settings
 from utilities.sync_core_libs.sync_core import SyncCore
@@ -131,8 +132,7 @@ class Folder:
         self.event.new_status()
         self.event.new_detail()
 
-        i = 0
-        for conflict in self.conflicts:
+        for conflict in self.conflicts.copy():
             if self.break_sync:
                 self.break_sync = False
                 self.resolving = False
@@ -150,13 +150,12 @@ class Folder:
 
             e = resolver.resolve(content)
             if e is None:
-                self.conflicts.pop(i)
+                self.resolve(conflict)
             else:
-                self.conflicts[i].set_error(e)
+                self.conflicts[self.conflicts.index(conflict)].set_error(e)
 
             self.detail = f"Resolving {conflict.path1}"
             self.event.new_detail()
-            i += 1
 
         self.resolving = False
         self.detail = "Resolving done."
