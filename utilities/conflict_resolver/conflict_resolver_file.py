@@ -34,12 +34,16 @@ class ConflictResolverFile:
         return Content(text, False, False)
 
     def resolve(self, new_content):
-        self.sync_core.resolve_conflict(
-            SyncFile(
-                self.conflict.path1, self.conflict.path2, self.conflict.type, None
-            ),
-            new_content,
-        )
+        try:
+            self.sync_core.resolve_conflict(
+                SyncFile(
+                    self.conflict.path1, self.conflict.path2, self.conflict.type, None
+                ),
+                new_content,
+            )
+        except Exception as e:
+            return e
+        return None
 
     def is_resolved(self, new_content: Content):
         found_line = -1

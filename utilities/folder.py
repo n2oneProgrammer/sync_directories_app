@@ -27,6 +27,7 @@ class Folder:
         self.conflicts = []
         self.in_sync = False
         self.error = False
+        self.resolving = False
         self.break_sync = False
         self.detail = ""
 
@@ -48,7 +49,7 @@ class Folder:
         self.event.new_detail()
 
     def _sync(self):
-        if self.in_sync or not self.valid():
+        if self.in_sync or not self.valid() or self.resolving:
             self.event.new_status()
             return
         self.in_sync = True
@@ -119,16 +120,46 @@ class Folder:
         self.conflicts.remove(confilct)
 
     def resolve_all(self, which):
+        Thread(
+            target=self._resolve_all, name=f"Resolving {self.name}", args=(which,)
+        ).start()
+
+    def _resolve_all(self, which):
+        self.resolving = True
+        self.break_sync = False
+        self.detail = f"Starting resolving..."
+        self.event.new_status()
+        self.event.new_detail()
+
+        i = 0
         for conflict in self.conflicts:
+            if self.break_sync:
+                self.break_sync = False
+                self.resolving = False
+                self.detail = "Resolving stopped."
+                self.event.new_status()
+                self.event.new_detail()
+                return
+
             resolver = ConflictResolverFile(conflict, self.sync_core)
             if which == 1:
                 content = resolver.get_content_path1()
             else:
                 content = resolver.get_content_path2()
             content.text = content.get_content()
-            resolver.resolve(content)
 
-        self.conflicts = []
+            e = resolver.resolve(content)
+            if e is None:
+                self.conflicts.pop(i)
+            else:
+                self.conflicts[i].set_error(e)
+
+            self.detail = f"Resolving {conflict.path1}"
+            self.event.new_detail()
+            i += 1
+
+        self.resolving = False
+        self.detail = "Resolving done."
         self.event.new_status()
         self.event.new_detail()
 
@@ -150,10 +181,12 @@ class Folder:
         return {"id": self.id, "name": self.name, "dir1": self.dir1, "dir2": self.dir2}
 
     def status(self):
-        if self.in_sync:
-            return "sync"
         if not self.valid():
             return "folder-alert"
+        if self.in_sync:
+            return "sync"
+        if self.resolving:
+            return "wrench"
         if len(self.conflicts) > 0:
             return "sync-alert"
         if self.error:

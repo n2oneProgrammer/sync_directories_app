@@ -12,6 +12,7 @@ from utilities.screens import ScreensUtilities
 class ConflictScreen(Screen):
     def setSync(self, sync, conflict):
         self.sync = sync
+        self.sync.resolving = True
         self.conflict = conflict
         self.title.title = self.conflict.path1 + " - " + self.conflict.path2
         self.resolver = ConflictResolverFile(self.conflict, self.sync.sync_core)
@@ -71,6 +72,10 @@ class ConflictScreen(Screen):
                 )
             )
 
+    def on_pre_leave(self, *args):
+        self.sync.resolving = False
+        return super().on_pre_leave(*args)
+
     def save(self):
         self.content.text = self.text.children[0].text  # TODO: Do it in better way
         if not self.resolver.is_resolved(self.content):
@@ -82,6 +87,10 @@ class ConflictScreen(Screen):
                 size_hint_x=(Window.width - (dp(10) * 2)) / Window.width,
             ).open()
             return
-        self.resolver.resolve(self.content)
-        self.sync.resolve(self.conflict)
+        e = self.resolver.resolve(self.content)
+        if e is None:
+            self.sync.resolve(self.conflict)
+        else:
+            self.sync.conflicts[self.sync.conflicts.index(self.conflict)].set_error(e)
+
         ScreensUtilities().goToSync(self.sync, True)
