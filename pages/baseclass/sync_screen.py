@@ -21,21 +21,27 @@ class SyncScreen(Screen):
         self.set_conflicts_list()
         self.detail()
 
-    def resolve_all(self):
+    def resolve_all_dialog(self):
         if not self.dialog:
             self.dialog = MDDialog(
                 text="Files from which folder should be copy?",
                 buttons=[
                     MDRaisedButton(
-                        text="Directory 1", on_press=lambda x: self.sync.resolve_all(1)
+                        text="Directory 1", on_press=lambda x: self.resolve_all(1)
                     ),
                     MDRaisedButton(
-                        text="Directory 2", on_press=lambda x: self.sync.resolve_all(2)
+                        text="Directory 2", on_press=lambda x: self.resolve_all(2)
                     ),
                 ],
             )
         self.dialog.open()
         self.dialog.on_dismiss = self.dismiss_dialog
+
+    def resolve_all(self, dir):
+        if self.dialog:
+            self.dialog.dismiss()
+
+        self.sync.resolve_all(dir)
 
     def delete_dialog(self):
         if not self.dialog:
@@ -92,7 +98,7 @@ class SyncScreen(Screen):
         if self.sync.conflicts:
             self.resolve_all_button.add_widget(
                 MDRaisedButton(
-                    text="Resolve all", on_press=lambda x: self.resolve_all()
+                    text="Resolve all", on_press=lambda x: self.resolve_all_dialog()
                 )
             )
 
