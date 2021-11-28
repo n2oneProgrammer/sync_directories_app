@@ -3,6 +3,7 @@ from threading import Thread
 from win10toast import ToastNotifier
 
 from utilities.path import convert_path
+from utilities.settings import Settings
 
 
 class Notification:
@@ -19,6 +20,8 @@ class Notification:
         self.n = False
 
     def notify(self, title, message, duration=5):
+        if not Settings().get("notifications"):
+            return
 
         Thread(
             target=self._notify,
