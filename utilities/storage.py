@@ -54,6 +54,6 @@ class Storage:
     def number_of_valid_syncs(self):
         i = 0
         for sync in self.syncs:
-            if sync.valid():
+            if sync.valid() and not sync.resolving:
                 i += 1
         return i
