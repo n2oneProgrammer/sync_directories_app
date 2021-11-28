@@ -4,6 +4,8 @@ import win32api
 import win32con
 import win32gui
 
+from utilities.settings import Settings
+
 
 class DeviceListener:
     """
@@ -43,6 +45,8 @@ class DeviceListener:
         win32gui.PumpMessages()
 
     def _on_message(self, hwnd: int, msg: int, wparam: int, lparam: int):
+        if not Settings().get("pendrive_sync"):
+            return
         if msg != win32con.WM_DEVICECHANGE:
             return 0
         print(f"Code: ({wparam:x})")

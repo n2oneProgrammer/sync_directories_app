@@ -8,6 +8,20 @@
         "converter": "autostart"
     },
     {
+        "type": "bool",
+        "title": "Notifications",
+        "description": "Enable or disable system notifications.",
+        "default": true,
+        "value": "notifications"
+    },
+    {
+        "type": "bool",
+        "title": "Pendrive plugged",
+        "description": "Sync when pendrive is plugged.",
+        "default": true,
+        "value": "pendrive_sync"
+    },
+    {
         "type": "string",
         "title": "Syncfile name",
         "description": "Name of file in which will be stored structure of synced folders.",
