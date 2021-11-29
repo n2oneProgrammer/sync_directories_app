@@ -61,3 +61,9 @@ class Storage:
     def change_name_file_all(self, old_name, new_name):
         for sync in self.syncs:
             sync.change_name_file(old_name, new_name)
+
+    def is_in_sync_or_resolving(self):
+        for sync in self.syncs:
+            if sync.resolving or sync.in_sync:
+                return True
+        return False
