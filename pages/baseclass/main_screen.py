@@ -4,13 +4,13 @@ from kivy.core.window import Window
 from kivy.metrics import dp
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.button import MDFlatButton
+from kivymd.uix.dialog import MDDialog
 from kivymd.uix.snackbar import Snackbar
 from utilities.screens import ScreensUtilities
 from utilities.storage import Storage
 
 
 class MainScreen(Screen):
-
     def set_folder_list(self):
         self.ids.rv.data = []
         try:
@@ -28,6 +28,7 @@ class MainScreen(Screen):
             pass
 
     def on_pre_enter(self, *args):
+        self.dialog = None
         self.snackbar = None
         for sync in Storage().syncs:
             sync.event.new_status += self.set_folder_list
@@ -60,6 +61,28 @@ class MainScreen(Screen):
             return
         ScreensUtilities().goToSync(sync)
 
+    def go_to_settings(self):
+        if Storage().is_in_sync_or_resolving():
+            self.open_dialog()
+            return
+        ScreensUtilities().goTo("settings", False)
+
+    def open_dialog(self):
+        if not self.dialog:
+            self.dialog = MDDialog(
+                text="You cannot use settings while syncing or resolving.",
+                buttons=[
+                    MDFlatButton(text="Ok", on_press=lambda _: self.dialog.dismiss()),
+                ],
+            )
+
+        self.dialog.open()
+        self.dialog.on_dismiss = self.dismiss_dialog
+
+    def dismiss_dialog(self):
+        self.dialog = None
+        return False
+
     def dismiss_snackbar(self):
         self.snackbar = None
 
@@ -72,4 +95,3 @@ class MainScreen(Screen):
 
     def on_pre_leave(self, *args):
         Storage().unsubscribe_new_status(self.set_folder_list)
-

@@ -10,48 +10,15 @@ import win32api
 # import threading
 import win32con
 from deepdiff import DeepDiff
-from utilities.conflict import Conflict
 from utilities.hash import Hash
 from utilities.settings import Settings
 from utilities.sync_core_libs.diff_type import DiffType
 from utilities.sync_core_libs.ignore_file import IgnoreFile
 from utilities.sync_core_libs.status_sync_file import StatusSyncFile
-
-
-class SyncFile:
-    def __init__(self, src1, src2, type, status):
-        self.src1 = src1
-        self.src2 = src2
-        self.type = type
-        self.status = status
-
-    def __str__(self):
-        return f"{self.type}: {self.src1} - {self.src2} | {self.status}"
-
-    def get_name(self):
-        if self.type is DiffType.Create:
-            return os.path.basename(self.src1)
-        elif self.type is DiffType.Delete:
-            return None
-        elif self.type is DiffType.Edit:
-            return f"{os.path.basename(self.src1)} -> {os.path.basename(self.src2)}"
-        elif self.type is DiffType.RemoveRemove:
-            return None
-        return None
-
-    def get_conflict(self):
-        if self.type in [
-            DiffType.AddAddConflict,
-            DiffType.EditEditConflict,
-            DiffType.RemoveEditConflict,
-            DiffType.Error,
-        ]:
-            return Conflict(self.src1, self.src2, self.type)
-        return None
+from utilities.sync_core_libs.sync_file import SyncFile
 
 
 class SyncCore:
-
     def __init__(self, src_dir1, src_dir2):
         self.src_dir1 = src_dir1
         self.src_dir2 = src_dir2
@@ -266,9 +233,7 @@ class SyncCore:
                     self.diff_list.append(o)
 
                     self.add_dir_if_diff(new_src1, new_src2, o)
-                    self.generate_structure(
-                        new_src1, new_src2, sub_dir
-                    )
+                    self.generate_structure(new_src1, new_src2, sub_dir)
                     if sync_dir is not None:
                         del sync_file_state[sync_dir]
                 else:
@@ -314,9 +279,7 @@ class SyncCore:
                     self.diff_list.append(o)
 
                     self.add_dir_if_diff(new_src1, new_src2, o)
-                    self.generate_structure(
-                        new_src1, new_src2, sub_dir
-                    )
+                    self.generate_structure(new_src1, new_src2, sub_dir)
                 else:
                     del sync_file_state[sync_dir]
                     self.add_all_as_diff(new_src1, new_src2)
@@ -358,10 +321,16 @@ class SyncCore:
         # make_diff_t.start()
 
     def make_diff_thread(self):
-        if not os.path.exists(join(self.src_dir1, Settings().get("sync_struct_file_name"))):
-            with open(join(self.src_dir1, Settings().get("sync_struct_file_name")), "w") as outfile:
+        if not os.path.exists(
+            join(self.src_dir1, Settings().get("sync_struct_file_name"))
+        ):
+            with open(
+                join(self.src_dir1, Settings().get("sync_struct_file_name")), "w"
+            ) as outfile:
                 json.dump({}, outfile)
-        with open(join(self.src_dir1, Settings().get("sync_struct_file_name")), "r") as infile:
+        with open(
+            join(self.src_dir1, Settings().get("sync_struct_file_name")), "r"
+        ) as infile:
             self.sync_file = json.load(infile)
         self.generate_structure(self.src_dir1, self.src_dir2)
         self.is_start = True
@@ -398,9 +367,14 @@ class SyncCore:
             del place[s]
         else:
             if not os.path.isdir(src1):
-                place[s] = {"limit": Settings().get("limit_hashing_file_MB"), "hash": Hash.md5(src1)}
+                place[s] = {
+                    "limit": Settings().get("limit_hashing_file_MB"),
+                    "hash": Hash.md5(src1),
+                }
 
-        with open(join(self.src_dir1, Settings().get("sync_struct_file_name")), "w") as outfile:
+        with open(
+            join(self.src_dir1, Settings().get("sync_struct_file_name")), "w"
+        ) as outfile:
             json.dump(self.sync_file, outfile)
 
     def merge_create_file(self, diff: SyncFile):
@@ -472,11 +446,3 @@ class SyncCore:
             with open(diff.src2, "w") as file:
                 file.write(new_content.text)
         self.update_sync_file(diff, new_content.is_deleted)
-
-    def change_name_file(self, old_name, new_name):
-        old_src = normpath(join(self.src_dir1, old_name))
-        new_src = normpath(join(self.src_dir1, new_name))
-        if os.path.exists(old_src) and not os.path.exists(new_src):
-            os.system("move " + old_src + " " + new_src)
-
-        self.ignore_file = IgnoreFile(self.src_dir1)

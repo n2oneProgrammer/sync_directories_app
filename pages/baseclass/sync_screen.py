@@ -1,5 +1,4 @@
-from components.baseclass.sync_list_item import \
-    SyncListItem  # it's in use via kivy
+from components.baseclass.sync_list_item import SyncListItem  # it's in use via kivy
 from kivy.metrics import dp
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
@@ -142,7 +141,7 @@ class SyncScreen(Screen):
                     {
                         "viewclass": "SyncListItem",
                         "icon": item.type.value,
-                        "text": f"{item.path1} - {item.path2}",
+                        "text": f"{item.src1} - {item.src2}",
                         "on_release": lambda conf=item, sync=self.sync: self.open_conflict(
                             sync, conf
                         ),
@@ -153,10 +152,12 @@ class SyncScreen(Screen):
         if conflict.type == DiffType.Error:
             if not self.dialog:
                 self.dialog = MDDialog(
-                    title = "Error",
-                    text = f"There is a problem with this conflict so you have to resolve it manually. Sync again when done.\n\nError Details:\n{conflict.error}",
+                    title="Error",
+                    text=f"There is a problem with this conflict so you have to resolve it manually. Sync again when done.\n\nError Details:\n{conflict.error}",
                     buttons=[
-                        MDFlatButton(text="Ok", on_press=lambda _: self.dialog.dismiss()),
+                        MDFlatButton(
+                            text="Ok", on_press=lambda _: self.dialog.dismiss()
+                        ),
                     ],
                 )
             self.dialog.open()

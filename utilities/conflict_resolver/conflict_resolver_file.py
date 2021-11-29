@@ -15,29 +15,29 @@ class ConflictResolverFile:
 
     def get_content_path1(self):
         try:
-            with open(self.conflict.path1, "r") as file:
+            with open(self.conflict.src1, "r") as file:
                 text = file.readlines()
         except FileNotFoundError:
-            return Content("", True, False, self.conflict.path1)
+            return Content("", True, False, self.conflict.src1)
         except UnicodeDecodeError:
-            return Content("", False, True, self.conflict.path1)
+            return Content("", False, True, self.conflict.src1)
         return Content(text, False, False)
 
     def get_content_path2(self):
         try:
-            with open(self.conflict.path2, "r") as file:
+            with open(self.conflict.src2, "r") as file:
                 text = file.readlines()
         except FileNotFoundError:
-            return Content("", True, False, self.conflict.path2)
+            return Content("", True, False, self.conflict.src2)
         except UnicodeDecodeError:
-            return Content("", False, True, self.conflict.path2)
+            return Content("", False, True, self.conflict.src2)
         return Content(text, False, False)
 
     def resolve(self, new_content):
         try:
             self.sync_core.resolve_conflict(
                 SyncFile(
-                    self.conflict.path1, self.conflict.path2, self.conflict.type, None
+                    self.conflict.src1, self.conflict.src2, self.conflict.type, None
                 ),
                 new_content,
             )
