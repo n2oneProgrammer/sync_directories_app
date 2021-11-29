@@ -5,8 +5,7 @@ from threading import Thread
 from events import Events
 from kivy.logger import Logger
 
-from utilities.conflict_resolver.conflict_resolver_file import \
-    ConflictResolverFile
+from utilities.conflict_resolver.conflict_resolver_file import ConflictResolverFile
 from utilities.notification import Notification
 from utilities.settings import Settings
 from utilities.sync_core_libs.sync_core import SyncCore
@@ -156,7 +155,7 @@ class Folder:
             else:
                 self.conflicts[self.conflicts.index(conflict)].set_error(e)
 
-            self.detail = f"Resolving {conflict.path1}"
+            self.detail = f"Resolving {conflict.src1}"
             self.event.new_detail()
 
         self.resolving = False
@@ -205,4 +204,6 @@ class Folder:
             if os.path.exists(old_src) and not os.path.exists(new_src):
                 os.system("move " + old_src + " " + new_src)
         except Exception as e:
-            Logger.error(f"Sync {self.name}: When renaming {old_name} -> {new_name}. {e}")
+            Logger.error(
+                f"Sync {self.name}: When renaming {old_name} -> {new_name}. {e}"
+            )

@@ -14,7 +14,7 @@ class ConflictScreen(Screen):
         self.sync = sync
         self.sync.resolving = True
         self.conflict = conflict
-        self.title.title = self.conflict.path1 + " - " + self.conflict.path2
+        self.title.title = self.conflict.src1 + " - " + self.conflict.src2
         self.resolver = ConflictResolverFile(self.conflict, self.sync.sync_core)
 
         self.comp_button.clear_widgets()
