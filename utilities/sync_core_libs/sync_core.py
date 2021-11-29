@@ -12,6 +12,7 @@ from shutil import copy2
 from deepdiff import DeepDiff
 from utilities.conflict import Conflict
 from utilities.hash import Hash
+from utilities.settings import Settings
 from utilities.sync_core_libs.diff_type import DiffType
 from utilities.sync_core_libs.ignore_file import IgnoreFile
 from utilities.sync_core_libs.status_sync_file import StatusSyncFile
@@ -161,13 +162,18 @@ class SyncCore:
     def add_file_if_diff(self, src1, src2, diff_list_object):
         md5_src1 = None
         md5_src2 = None
-        if os.path.exists(src1):
-            md5_src1 = Hash.md5(src1)
-        if os.path.exists(src2):
-            md5_src2 = Hash.md5(src2)
+        limit_hash = Settings().get("limit_hashing_file_MB")
+        hash = None
         md5_sync_file = self.get_md5_file_from_sync_file(src1)
+        if md5_sync_file is not None:
+            limit_hash = md5_sync_file["limit"]
+            hash = md5_sync_file["hash"]
+        if os.path.exists(src1):
+            md5_src1 = Hash.md5(src1, limit_hash)
+        if os.path.exists(src2):
+            md5_src2 = Hash.md5(src2, limit_hash)
 
-        if md5_sync_file is None:
+        if hash is None:
             if md5_src1 is not None and md5_src2 is not None:
                 self.change_status_diff_list(DiffType.AddAddConflict, diff_list_object)
             elif md5_src1 is not None:
@@ -175,19 +181,20 @@ class SyncCore:
             else:
                 self.change_status_diff_list(DiffType.Create, diff_list_object, True)
         else:
-            if md5_sync_file == md5_src1:
+            if hash == md5_src1:
                 if md5_src2 is None:
                     self.change_status_diff_list(
                         DiffType.Delete, diff_list_object, True
                     )
-                elif not md5_sync_file == md5_src2:
+                elif not hash == md5_src2:
                     self.change_status_diff_list(DiffType.Edit, diff_list_object, True)
                 else:
+                    self.update_sync_file(diff_list_object,False)
                     self.diff_list.remove(diff_list_object)
-            elif md5_sync_file == md5_src2:
+            elif hash == md5_src2:
                 if md5_src1 is None:
                     self.change_status_diff_list(DiffType.Delete, diff_list_object)
-                elif not md5_sync_file == md5_src1:
+                elif not hash == md5_src1:
                     self.change_status_diff_list(DiffType.Edit, diff_list_object)
             else:
                 if md5_src1 is None:
@@ -390,7 +397,7 @@ class SyncCore:
             del place[s]
         else:
             if not os.path.isdir(src1):
-                place[s] = Hash.md5(src1)
+                place[s] = {"limit": Settings().get("limit_hashing_file_MB"), "hash": Hash.md5(src1)}
 
         with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), "w") as outfile:
             json.dump(self.sync_file, outfile)
