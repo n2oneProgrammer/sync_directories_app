@@ -1,5 +1,7 @@
 import winreg
 
+from kivy.logger import Logger
+
 from utilities.path import get_package_name, get_self_path
 from utilities.settings import Settings
 
@@ -22,7 +24,7 @@ class Autostart:
 
         app_name = get_package_name()
         if Settings().get("autostart") != self.check_autostart_registry(app_name):
-            print(f"Updating autostart registry to { Settings().get('autostart') }")
+            Logger.info(f"Updating autostart registry to { Settings().get('autostart') }")
             self.set_autostart_registry(
                 app_name, self.path, Settings().get("autostart")
             )

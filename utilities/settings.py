@@ -1,5 +1,7 @@
 import json
 
+from kivy.logger import Logger
+
 from utilities.path import convert_path, get_storage
 
 
@@ -23,7 +25,7 @@ class Settings:
             if self.data == {}:
                 raise Exception
         except:
-            print("Cannot found " + self.file_name)
+            Logger.error(f"Settings: Cannot found {self.file_name}")
             with open(self.file_name, "w") as json_file:
                 json.dump({}, json_file)
 

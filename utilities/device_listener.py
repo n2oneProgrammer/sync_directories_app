@@ -3,6 +3,7 @@ from threading import Thread
 import win32api
 import win32con
 import win32gui
+from kivy.logger import Logger
 
 from utilities.settings import Settings
 
@@ -41,7 +42,7 @@ class DeviceListener:
 
     def _start(self):
         hwnd = self._create_window()
-        print(f"Created listener window with hwnd {hwnd:x}")
+        Logger.info(f"DevListener: Created listener window with hwnd #{hwnd:x}")
         win32gui.PumpMessages()
 
     def _on_message(self, hwnd: int, msg: int, wparam: int, lparam: int):
@@ -49,8 +50,8 @@ class DeviceListener:
             return
         if msg != win32con.WM_DEVICECHANGE:
             return 0
-        print(f"Code: ({wparam:x})")
+        Logger.info(f"DevListener: code #{wparam:x}")
         if 0x8000 == wparam:
-            print(f"A device has been plugged in")
+            Logger.info(f"DevListener: A device has been plugged in")
             self.on_change()
         return 0
