@@ -51,7 +51,6 @@ class SyncFile:
 
 
 class SyncCore:
-    SYNC_STRUCT_FILE = ".syncstruct"
 
     def __init__(self, src_dir1, src_dir2):
         self.src_dir1 = src_dir1
@@ -67,6 +66,7 @@ class SyncCore:
         self.diff_list = []
 
         self.ignore_file = IgnoreFile(src_dir1)
+        self.SYNC_STRUCT_FILE = Settings().get("sync_struct_file_name")
 
         # self.diff_list_lock = threading.Lock()
         self.sync_file = {}
@@ -191,7 +191,7 @@ class SyncCore:
                 elif not hash == md5_src2:
                     self.change_status_diff_list(DiffType.Edit, diff_list_object, True)
                 else:
-                    self.update_sync_file(diff_list_object,False)
+                    self.update_sync_file(diff_list_object, False)
                     self.diff_list.remove(diff_list_object)
             elif hash == md5_src2:
                 if md5_src1 is None:
@@ -473,3 +473,11 @@ class SyncCore:
             with open(diff.src2, "w") as file:
                 file.write(new_content.text)
         self.update_sync_file(diff, new_content.is_deleted)
+
+    def change_name_file(self, old_name, new_name):
+        old_src = normpath(join(self.src_dir1, old_name))
+        new_src = normpath(join(self.src_dir1, new_name))
+        os.system("mv " + old_src + " " + new_src)
+
+        self.SYNC_STRUCT_FILE = Settings().get("sync_struct_file_name")
+        self.ignore_file = IgnoreFile(self.src_dir1)
