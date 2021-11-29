@@ -476,7 +476,7 @@ class SyncCore:
     def change_name_file(self, old_name, new_name):
         old_src = normpath(join(self.src_dir1, old_name))
         new_src = normpath(join(self.src_dir1, new_name))
-        if os.path.exists(old_src) and os.path.exists(new_src):
+        if os.path.exists(old_src) and not os.path.exists(new_src):
             os.system("move " + old_src + " " + new_src)
 
         self.ignore_file = IgnoreFile(self.src_dir1)
