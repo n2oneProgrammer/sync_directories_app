@@ -51,7 +51,6 @@ class SyncFile:
 
 
 class SyncCore:
-    SYNC_STRUCT_FILE = ".syncstruct"
 
     def __init__(self, src_dir1, src_dir2):
         self.src_dir1 = src_dir1
@@ -97,7 +96,7 @@ class SyncCore:
 
         struct1 = [f for f in os.listdir(src_dir1)]
         for obj in struct1:
-            if basename(obj) == self.SYNC_STRUCT_FILE:
+            if basename(obj) == Settings().get("sync_struct_file_name"):
                 continue
 
             new_src1 = join(src_dir1, obj)
@@ -191,7 +190,7 @@ class SyncCore:
                 elif not hash == md5_src2:
                     self.change_status_diff_list(DiffType.Edit, diff_list_object, True)
                 else:
-                    self.update_sync_file(diff_list_object,False)
+                    self.update_sync_file(diff_list_object, False)
                     self.diff_list.remove(diff_list_object)
             elif hash == md5_src2:
                 if md5_src1 is None:
@@ -247,7 +246,7 @@ class SyncCore:
         struct2 = [f for f in os.listdir(src_dir2)]
         for obj in struct1:
 
-            if basename(obj) == self.SYNC_STRUCT_FILE:
+            if basename(obj) == Settings().get("sync_struct_file_name"):
                 continue
 
             new_src1 = join(src_dir1, obj)
@@ -296,7 +295,7 @@ class SyncCore:
             struct1_copy.remove(obj)
 
         for obj in struct2:
-            if basename(obj) == self.SYNC_STRUCT_FILE:
+            if basename(obj) == Settings().get("sync_struct_file_name"):
                 continue
 
             new_src1 = join(src_dir1, obj)
@@ -359,10 +358,10 @@ class SyncCore:
         # make_diff_t.start()
 
     def make_diff_thread(self):
-        if not os.path.exists(join(self.src_dir1, self.SYNC_STRUCT_FILE)):
-            with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), "w") as outfile:
+        if not os.path.exists(join(self.src_dir1, Settings().get("sync_struct_file_name"))):
+            with open(join(self.src_dir1, Settings().get("sync_struct_file_name")), "w") as outfile:
                 json.dump({}, outfile)
-        with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), "r") as infile:
+        with open(join(self.src_dir1, Settings().get("sync_struct_file_name")), "r") as infile:
             self.sync_file = json.load(infile)
         self.generate_structure(self.src_dir1, self.src_dir2)
         self.is_start = True
@@ -401,7 +400,7 @@ class SyncCore:
             if not os.path.isdir(src1):
                 place[s] = {"limit": Settings().get("limit_hashing_file_MB"), "hash": Hash.md5(src1)}
 
-        with open(join(self.src_dir1, self.SYNC_STRUCT_FILE), "w") as outfile:
+        with open(join(self.src_dir1, Settings().get("sync_struct_file_name")), "w") as outfile:
             json.dump(self.sync_file, outfile)
 
     def merge_create_file(self, diff: SyncFile):
@@ -473,3 +472,11 @@ class SyncCore:
             with open(diff.src2, "w") as file:
                 file.write(new_content.text)
         self.update_sync_file(diff, new_content.is_deleted)
+
+    def change_name_file(self, old_name, new_name):
+        old_src = normpath(join(self.src_dir1, old_name))
+        new_src = normpath(join(self.src_dir1, new_name))
+        if os.path.exists(old_src) and not os.path.exists(new_src):
+            os.system("move " + old_src + " " + new_src)
+
+        self.ignore_file = IgnoreFile(self.src_dir1)
