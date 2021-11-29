@@ -1,8 +1,9 @@
 import webbrowser
 
 from components.baseclass.settings_bool_dialog import SettingsBoolDialog
-from components.baseclass.settings_list_item import \
-    SettingsListItem  # it's in use via kivy
+from components.baseclass.settings_list_item import (
+    SettingsListItem,
+)  # it's in use via kivy
 from components.baseclass.settings_range_dialog import SettingsRangeDialog
 from components.baseclass.settings_string_dialog import SettingsStringDialog
 from kivy.uix.screenmanager import Screen
@@ -11,6 +12,7 @@ from kivymd.uix.dialog import MDDialog
 from utilities.autostart import Autostart
 from utilities.path import slugify
 from utilities.settings import Settings
+from utilities.storage import Storage
 
 
 class SettingsScreen(Screen):
@@ -82,13 +84,14 @@ class SettingsScreen(Screen):
             v = field.text
         elif item["type"] == "range":
             v = field.value
-            
+
         elif item["type"] == "bool":
             v = field.active
 
         if item.get("converter") is not None:
             if item["converter"] == "filename":
                 v = slugify(v, allow_unicode=True)
+                Storage().change_name_file_all(Settings().get(key), v)
                 Settings().set(key, v)
             elif item["converter"] == "autostart":
                 Settings().set(key, v)

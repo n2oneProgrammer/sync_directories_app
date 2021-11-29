@@ -57,3 +57,7 @@ class Storage:
             if sync.valid() and not sync.resolving:
                 i += 1
         return i
+
+    def change_name_file_all(self, old_name, new_name):
+        for sync in self.syncs:
+            sync.change_name_file(old_name, new_name)
