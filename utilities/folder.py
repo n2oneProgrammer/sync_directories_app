@@ -3,6 +3,7 @@ from os import path
 from threading import Thread
 
 from events import Events
+from kivy.logger import Logger
 
 from utilities.conflict_resolver.conflict_resolver_file import \
     ConflictResolverFile
@@ -57,7 +58,7 @@ class Folder:
         self.error = False
         self.event.new_status()
 
-        print("Syncing:", self.name)
+        Logger.info(f"Sync {self.name}: Starting sync...")
         self.conflicts = []
         self.detail = "Looking for differences..."
         self.event.new_detail()
@@ -106,10 +107,10 @@ class Folder:
         self.detail = "Sync done."
         self.event.new_status()
         self.event.new_detail()
-        print("DONE")
+        Logger.info(f"Sync {self.name}: Sync done.")
 
     def _set_error(self, error):
-        print(f"Error: {error}")
+        Logger.error(f"Sync {self.name}: {error}")
         self.detail = f"Error: {error}"
         self.error = True
         self.break_sync = False
@@ -126,6 +127,7 @@ class Folder:
         ).start()
 
     def _resolve_all(self, which):
+        Logger.info(f"Sync {self.name}: Starting resolving...")
         self.resolving = True
         self.break_sync = False
         self.detail = f"Starting resolving..."
@@ -161,6 +163,7 @@ class Folder:
         self.detail = "Resolving done."
         self.event.new_status()
         self.event.new_detail()
+        Logger.info(f"Sync {self.name}: Resolving done.")
 
     def save(self):
         syncs = Settings().get("syncs")
