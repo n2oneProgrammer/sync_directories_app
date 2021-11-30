@@ -1,11 +1,7 @@
-from components.baseclass.sync_list_item import \
-    SyncListItem  # it's in use via kivy
-from kivy.core.window import Window
-from kivy.metrics import dp
+from components.baseclass.sync_list_item import SyncListItem  # it's in use via kivy
 from kivy.uix.screenmanager import Screen
-from kivymd.uix.button import MDFlatButton
+from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.snackbar import Snackbar
 from utilities.screens import ScreensUtilities
 from utilities.storage import Storage
 
@@ -41,40 +37,42 @@ class MainScreen(Screen):
     def goToSync(self, sync):
         if not sync.valid():
             sync.event.new_status()
-            if self.snackbar is None:
-                self.snackbar = Snackbar(
-                    text="Cannot acess folder dir!",
-                    snackbar_x="10dp",
-                    snackbar_y="10dp",
-                    bg_color=(0.8, 0, 0, 1),
-                    size_hint_x=(Window.width - (dp(10) * 2)) / Window.width,
+            self.open_dialog(
+                MDDialog(
+                    text="Cannot acess sync dir. Do you want to delete this sync?",
+                    buttons=[
+                        MDFlatButton(
+                            text="Back", on_press=lambda _: self.dialog.dismiss()
+                        ),
+                        MDRaisedButton(
+                            text="Delete",
+                            md_bg_color=(1, 0, 0, 1),
+                            on_press=lambda _, x=sync: self.del_sync(x),
+                        ),
+                    ],
                 )
-                button = MDFlatButton(
-                    text="DELETE",
-                    text_color=(1, 1, 1, 1),
-                    on_release=lambda y, x=sync: self.del_sync(x),
-                )
-                self.snackbar.buttons.append(button)
-                self.snackbar.open()
-                self.snackbar.on_dismiss = self.dismiss_snackbar
-
+            )
             return
         ScreensUtilities().goToSync(sync)
 
     def go_to_settings(self):
         if Storage().is_in_sync_or_resolving():
-            self.open_dialog()
+            self.open_dialog(
+                MDDialog(
+                    text="You cannot use settings while syncing or resolving.",
+                    buttons=[
+                        MDFlatButton(
+                            text="Ok", on_press=lambda _: self.dialog.dismiss()
+                        ),
+                    ],
+                )
+            )
             return
         ScreensUtilities().goTo("settings", False)
 
-    def open_dialog(self):
+    def open_dialog(self, dialog):
         if not self.dialog:
-            self.dialog = MDDialog(
-                text="You cannot use settings while syncing or resolving.",
-                buttons=[
-                    MDFlatButton(text="Ok", on_press=lambda _: self.dialog.dismiss()),
-                ],
-            )
+            self.dialog = dialog
 
         self.dialog.open()
         self.dialog.on_dismiss = self.dismiss_dialog
@@ -83,13 +81,10 @@ class MainScreen(Screen):
         self.dialog = None
         return False
 
-    def dismiss_snackbar(self):
-        self.snackbar = None
-
     def del_sync(self, sync):
         if sync in Storage().syncs:
-            if self.snackbar is not None:
-                self.snackbar.dismiss()
+            if self.dialog:
+                self.dialog.dismiss()
             Storage().remove(sync)
             self.set_folder_list()
 
