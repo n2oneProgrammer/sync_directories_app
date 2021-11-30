@@ -34,5 +34,8 @@ class ScreensUtilities:
 
     def reset(self):
         self.sm.transition = NoTransition()
-        self.sm.current = "main"
+        self.sm.current = "empty"
 
+    def start(self):
+        self.sm.transition = NoTransition()
+        self.sm.current = "main"
