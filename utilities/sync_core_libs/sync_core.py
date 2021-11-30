@@ -265,6 +265,8 @@ class SyncCore:
 
             new_src1 = join(src_dir1, obj)
             new_src2 = join(src_dir2, obj)
+            if self.ignore_file.is_detect(relpath(new_src1, self.src_dir1)):
+                continue
             sync_dir = self.find_dir_in_sync_file(sync_file_state, obj)
             if os.path.isdir(join(src_dir1, obj)):
 
@@ -306,7 +308,8 @@ class SyncCore:
         for obj in sync_file_state.copy().keys():
             new_src1 = join(src_dir1, obj)
             new_src2 = join(src_dir2, obj)
-
+            if self.ignore_file.is_detect(relpath(new_src1, self.src_dir1)):
+                continue
             o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
             # with self.diff_list_lock:
             #     self.diff_list.append(o)
