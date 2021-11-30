@@ -1,3 +1,6 @@
+from kivy.uix.screenmanager import NoTransition, SlideTransition
+
+
 class ScreensUtilities:
 
     __instance = None
@@ -9,8 +12,10 @@ class ScreensUtilities:
 
     def setSm(self, sm):
         self.sm = sm
+        self.default_transition = SlideTransition() 
 
     def goTo(self, screen, right):
+        self.sm.transition = self.default_transition
         if right:
             self.sm.transition.direction = "right"
         else:
@@ -26,3 +31,8 @@ class ScreensUtilities:
     def goToConfilct(self, sync, conflict):
         self.goTo("conflict", False)
         self.sm.get_screen(self.sm.current).setSync(sync, conflict)
+
+    def reset(self):
+        self.sm.transition = NoTransition()
+        self.sm.current = "main"
+
