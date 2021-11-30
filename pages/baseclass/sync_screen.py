@@ -1,3 +1,5 @@
+import subprocess
+
 from components.baseclass.sync_list_item import SyncListItem  # it's in use via kivy
 from kivy.metrics import dp
 from kivy.uix.screenmanager import Screen
@@ -24,8 +26,8 @@ class SyncScreen(Screen):
         self.detail()
 
     def resolve_all_dialog(self):
-        if not self.dialog:
-            self.dialog = MDDialog(
+        self.open_dialog(
+            MDDialog(
                 text="Files from which folder should be copy?",
                 buttons=[
                     MDRaisedButton(
@@ -36,8 +38,7 @@ class SyncScreen(Screen):
                     ),
                 ],
             )
-        self.dialog.open()
-        self.dialog.on_dismiss = self.dismiss_dialog
+        )
 
     def resolve_all(self, dir):
         if self.dialog:
@@ -46,9 +47,9 @@ class SyncScreen(Screen):
         self.sync.resolve_all(dir)
 
     def delete_dialog(self):
-        if not self.dialog:
-            if self.sync.in_sync:
-                self.dialog = MDDialog(
+        if self.sync.in_sync:
+            self.open_dialog(
+                MDDialog(
                     text="You cannot delete it while it's syncing.",
                     buttons=[
                         MDFlatButton(
@@ -56,8 +57,10 @@ class SyncScreen(Screen):
                         ),
                     ],
                 )
-            else:
-                self.dialog = MDDialog(
+            )
+        else:
+            self.open_dialog(
+                MDDialog(
                     text="Are you sure you want to delete it?",
                     buttons=[
                         MDFlatButton(
@@ -70,6 +73,35 @@ class SyncScreen(Screen):
                         ),
                     ],
                 )
+            )
+
+    def open_dir_dialog(self):
+        self.open_dialog(
+            MDDialog(
+                text="Which directory should be open?",
+                buttons=[
+                    MDRaisedButton(
+                        text="Directory 1", on_press=lambda _: self.open_dir(1)
+                    ),
+                    MDRaisedButton(
+                        text="Directory 2", on_press=lambda _: self.open_dir(2)
+                    ),
+                ],
+            )
+        )
+
+    def open_dir(self, dir):
+        if self.dialog:
+            self.dialog.dismiss()
+
+        if dir == 1:
+            subprocess.Popen(f'explorer "{self.sync.dir1}"')
+        else:
+            subprocess.Popen(f'explorer "{self.sync.dir2}"')
+
+    def open_dialog(self, dialog):
+        if not self.dialog:
+            self.dialog = dialog
         self.dialog.open()
         self.dialog.on_dismiss = self.dismiss_dialog
 

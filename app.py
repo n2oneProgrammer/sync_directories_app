@@ -62,6 +62,7 @@ class App:
         self.opened = False
 
     def on_close(self):
+        ScreensUtilities().reset()
         Storage().unsubscribe_all()
         self.opened = False
 
