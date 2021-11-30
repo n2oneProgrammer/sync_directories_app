@@ -194,7 +194,7 @@ class SyncCore:
             is_hidden2 = not status2 & win32con.FILE_ATTRIBUTE_HIDDEN == 0
         if is_hidden1:
             self.change_status_diff_list(DiffType.Create, diff_list_object)
-        if is_hidden2:
+        elif is_hidden2:
             self.change_status_diff_list(DiffType.Create, diff_list_object, True)
         else:
             self.diff_list.remove(diff_list_object)
@@ -325,14 +325,14 @@ class SyncCore:
 
     def make_diff_thread(self):
         if not os.path.exists(
-            join(self.src_dir1, Settings().get("sync_struct_file_name"))
+                join(self.src_dir1, Settings().get("sync_struct_file_name"))
         ):
             with open(
-                join(self.src_dir1, Settings().get("sync_struct_file_name")), "w"
+                    join(self.src_dir1, Settings().get("sync_struct_file_name")), "w"
             ) as outfile:
                 json.dump({}, outfile)
         with open(
-            join(self.src_dir1, Settings().get("sync_struct_file_name")), "r"
+                join(self.src_dir1, Settings().get("sync_struct_file_name")), "r"
         ) as infile:
             self.sync_file = json.load(infile)
         self.generate_structure(self.src_dir1, self.src_dir2)
@@ -376,7 +376,7 @@ class SyncCore:
                 }
 
         with open(
-            join(self.src_dir1, Settings().get("sync_struct_file_name")), "w"
+                join(self.src_dir1, Settings().get("sync_struct_file_name")), "w"
         ) as outfile:
             json.dump(self.sync_file, outfile)
 
