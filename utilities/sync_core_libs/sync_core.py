@@ -68,7 +68,11 @@ class SyncCore:
 
             new_src1 = join(src_dir1, obj)
             new_src2 = join(src_dir2, obj)
-            if self.ignore_file.is_detect(relpath(new_src1, self.src_dir1)):
+            try:
+                rel = relpath(new_src1, self.src_dir1)
+            except ValueError:
+                rel = relpath(new_src2, self.src_dir1)
+            if self.ignore_file.is_detect(rel):
                 continue
             if os.path.isdir(join(src_dir1, obj)):
                 o = SyncFile(new_src1, new_src2, None, StatusSyncFile.makeCompare)
