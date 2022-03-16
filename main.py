@@ -21,12 +21,15 @@ class Tray:
 
     def _init(self):
         self.length_sync = -1
-        self.icon = Icon(get_name(), title=get_name())
-        self.icon.icon = Image.open(get_icon_path())
-        self.icon.menu = Menu(
-            MenuItem("Open", self.start_app),
-            MenuItem("Sync now", self.sync_now),
-            MenuItem("Close", self.exit),
+        self.icon = Icon(
+            name=get_name(),
+            icon=Image.open(get_icon_path()),
+            title=get_name(),
+            menu=Menu(
+                MenuItem("Open", self.start_app),
+                MenuItem("Sync now", self.sync_now),
+                MenuItem("Close", self.exit),
+            ),
         )
         Autostart().update()
 
