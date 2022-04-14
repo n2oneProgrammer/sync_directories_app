@@ -335,12 +335,22 @@ class SyncCore:
                     join(self.src_dir1, Settings().get("sync_struct_file_name")), "w"
             ) as outfile:
                 json.dump({}, outfile)
+
         with open(
                 join(self.src_dir1, Settings().get("sync_struct_file_name")), "r"
         ) as infile:
             self.sync_file = json.load(infile)
+
         self.generate_structure(self.src_dir1, self.src_dir2)
         self.is_start = True
+
+    def save_sync_file(self):
+        with open(
+                join(self.src_dir1, Settings().get("sync_struct_file_name")), "w"
+        ) as outfile:
+            json.dump(self.sync_file, outfile)
+
+        print("SAVE")
 
     def update_sync_file(self, diff, is_delete):
         src1 = diff.src1
@@ -378,11 +388,6 @@ class SyncCore:
                     "limit": Settings().get("limit_hashing_file_MB"),
                     "hash": Hash.md5(src1),
                 }
-
-        with open(
-                join(self.src_dir1, Settings().get("sync_struct_file_name")), "w"
-        ) as outfile:
-            json.dump(self.sync_file, outfile)
 
     def merge_create_file(self, diff: SyncFile):
         src = diff.src1
@@ -453,3 +458,4 @@ class SyncCore:
             with open(diff.src2, "w") as file:
                 file.write(new_content.text)
         self.update_sync_file(diff, new_content.is_deleted)
+        self.save_sync_file()
