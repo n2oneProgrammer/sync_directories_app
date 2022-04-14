@@ -350,8 +350,6 @@ class SyncCore:
         ) as outfile:
             json.dump(self.sync_file, outfile)
 
-        print("SAVE")
-
     def update_sync_file(self, diff, is_delete):
         src1 = diff.src1
 
