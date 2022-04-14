@@ -47,6 +47,7 @@ class Folder:
 
     def stop(self):
         self.break_sync = True
+        self.sync_core.save_sync_file()
         self.event.new_detail()
 
     def _sync(self):
@@ -96,6 +97,7 @@ class Folder:
                 self.event.new_detail()
                 self.conflicts.append(c)
 
+        self.sync_core.save_sync_file()
         if len(self.conflicts) > 0:
             Notification().notify(
                 "Detected confilcts",
