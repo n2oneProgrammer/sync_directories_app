@@ -14,8 +14,14 @@ class IgnoreFile:
 
     def is_detect(self, name):
         for line in self.ignore_file:
-            if normpath(name) == normpath(line):
-                return True
+            elements = normpath(line).split("\\")
+            paths = normpath(name).split("\\")
+            element_pointer = 0
+            for path in paths:
+                if path == elements[element_pointer]:
+                    element_pointer += 1
+                    if element_pointer >= len(elements):
+                        return True
         return False
 
     def load_file(self):
